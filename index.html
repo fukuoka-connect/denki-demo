@@ -1,0 +1,2055 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="電気工事業向け 業務仕組み化デモ（データはすべて架空）">
+<title>電設ボード 電気工事業デモ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --ink:#121821; --ink-2:#38485C; --ink-3:#6B7E92;
+  --paper:#EBEDF0; --surface:#FFFFFF; --surface-2:#F4F6F8;
+  --line:#D4DAE1; --line-strong:#B2BDC8;
+  --accent:#1550DC; --accent-soft:#E3EAFC;
+  --volt:#B5820A; --volt-soft:#F8EFD4;
+  --ok:#1D7A52; --ok-soft:#DBEBE3;
+  --warn:#B07A0C; --warn-soft:#F7ECD2;
+  --bad:#C0362B; --bad-soft:#F9DFDC;
+  --shadow:0 1px 2px rgba(18,24,33,.05),0 10px 26px -18px rgba(18,24,33,.4);
+  --mono:"Roboto Mono","SFMono-Regular",Menlo,monospace;
+  --disp:"BIZ UDPGothic","Hiragino Kaku Gothic ProN",sans-serif;
+  --body:"Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6ECF2; --ink-2:#AFBECD; --ink-3:#7B8C9D;
+    --paper:#0C1218; --surface:#141D26; --surface-2:#1A242F;
+    --line:#293643; --line-strong:#3A4B5A;
+    --accent:#5B8DF5; --accent-soft:#16233C;
+    --volt:#DCA92C; --volt-soft:#312610;
+    --ok:#52AE87; --ok-soft:#132E26;
+    --warn:#D9A63C; --warn-soft:#332813;
+    --bad:#E27567; --bad-soft:#331B18;
+    --shadow:0 1px 2px rgba(0,0,0,.45),0 12px 30px -20px rgba(0,0,0,.95);
+  }
+  :root:not([data-theme="light"]) .k-kojin{color:#AE92E2}
+  :root:not([data-theme="light"]) .k-tenpo{color:#6E9DF7}
+  :root:not([data-theme="light"]) .k-koujo{color:#52AE87}
+  :root:not([data-theme="light"]) .k-motouke{color:#C2A070}
+}
+:root[data-theme="dark"]{
+  --ink:#E6ECF2; --ink-2:#AFBECD; --ink-3:#7B8C9D;
+  --paper:#0C1218; --surface:#141D26; --surface-2:#1A242F;
+  --line:#293643; --line-strong:#3A4B5A;
+  --accent:#5B8DF5; --accent-soft:#16233C;
+  --volt:#DCA92C; --volt-soft:#312610;
+  --ok:#52AE87; --ok-soft:#132E26;
+  --warn:#D9A63C; --warn-soft:#332813;
+  --bad:#E27567; --bad-soft:#331B18;
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 12px 30px -20px rgba(0,0,0,.95);
+}
+:root[data-theme="dark"] .k-kojin{color:#AE92E2}
+:root[data-theme="dark"] .k-tenpo{color:#6E9DF7}
+:root[data-theme="dark"] .k-koujo{color:#52AE87}
+:root[data-theme="dark"] .k-motouke{color:#C2A070}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--disp);margin:0;text-wrap:balance;line-height:1.4}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:214px minmax(0,1fr);min-height:100vh}
+.rail{background:var(--surface);border-right:1px solid var(--line);padding-block:20px 26px;padding-inline:13px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;flex-direction:column;gap:2px;padding-inline:5px}
+.brand .mark{display:inline-flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:18px;letter-spacing:.04em}
+.mark i{width:13px;height:23px;background:var(--accent);display:block;clip-path:polygon(58% 0,0 56%,42% 56%,30% 100%,100% 40%,52% 40%)}
+.brand small{color:var(--ink-3);font-size:10.5px;letter-spacing:.11em}
+.navgroup{display:flex;flex-direction:column;gap:2px}
+.navgroup>span{font-size:9.5px;letter-spacing:.18em;color:var(--ink-3);padding-inline:9px;margin-bottom:5px}
+.nav{display:flex;align-items:center;gap:9px;width:100%;background:none;border:0;border-left:3px solid transparent;border-radius:0 3px 3px 0;cursor:pointer;font-family:var(--body);font-size:13px;font-weight:500;color:var(--ink-2);padding:8px 9px;text-align:left}
+.nav:hover{background:var(--surface-2);color:var(--ink)}
+.nav .k{font-family:var(--mono);font-size:10px;color:var(--ink-3);width:15px;letter-spacing:-.02em}
+.nav .badge{margin-left:auto;font-family:var(--mono);font-size:10px;background:var(--bad);color:#fff;border-radius:2px;padding:0 5px;min-width:16px;text-align:center}
+.nav[aria-current="true"]{background:var(--accent-soft);border-left-color:var(--accent);color:var(--ink);font-weight:700}
+.nav[aria-current="true"] .k{color:var(--accent)}
+.rail footer{margin-top:auto;font-size:10.5px;color:var(--ink-3);line-height:1.65;padding-inline:5px}
+.rail footer b{display:block;color:var(--ink-2);font-size:11px}
+.reset{margin-top:8px;font-family:var(--body);font-size:11px;color:var(--ink-3);background:none;border:1px solid var(--line);border-radius:3px;padding:4px 8px;cursor:pointer}
+.reset:hover{border-color:var(--line-strong);color:var(--ink-2)}
+
+.main{min-width:0;padding-block:24px 72px;padding-inline:clamp(16px,3.2vw,38px)}
+.page{display:flex;flex-direction:column;gap:20px}
+.page[hidden]{display:none}
+.phead{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px 20px;justify-content:space-between}
+.phead h1{font-size:clamp(20px,2.4vw,26px);font-weight:700;letter-spacing:.01em}
+.phead p{margin:6px 0 0;color:var(--ink-3);font-size:12.5px;max-width:64ch}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--accent);text-transform:uppercase;display:block;margin-bottom:3px}
+
+/* ---------- primitives ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:4px;box-shadow:var(--shadow)}
+.card>header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 15px;border-bottom:1px solid var(--line)}
+.card>header h2{font-size:14px;font-weight:700;letter-spacing:.02em}
+.card>header .hint{font-size:11.5px;color:var(--ink-3)}
+.pad{padding:15px}
+
+.btn{font-family:var(--body);font-size:12.5px;font-weight:700;cursor:pointer;border-radius:3px;padding:7px 14px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);white-space:nowrap;line-height:1.4}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.btn.sm{font-size:11.5px;padding:4px 10px;font-weight:500}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--line-strong);border-radius:3px;padding:13px 15px 15px;display:flex;flex-direction:column;gap:2px;box-shadow:var(--shadow)}
+.kpi dt{font-size:11.5px;color:var(--ink-3);letter-spacing:.03em}
+.kpi dd{margin:0;font-family:var(--mono);font-size:25px;font-weight:600;letter-spacing:-.02em}
+.kpi dd small{font-size:12px;font-weight:500;color:var(--ink-3);margin-left:3px;font-family:var(--body)}
+.kpi .delta{font-size:11px;color:var(--ink-3)}
+.kpi .delta b{font-family:var(--mono);font-weight:600}
+.kpi.flag{border-top-color:var(--accent)}
+.kpi.flag dd{color:var(--accent)}
+.kpi.hot{border-top-color:var(--bad)}
+.kpi.hot dd{color:var(--bad)}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:2px;font-size:11px;font-weight:700;letter-spacing:.03em;white-space:nowrap}
+.pill::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.p-ok{background:var(--ok-soft);color:var(--ok)}
+.p-run{background:var(--accent-soft);color:var(--accent)}
+.p-warn{background:var(--warn-soft);color:var(--warn)}
+.p-bad{background:var(--bad-soft);color:var(--bad)}
+.p-idle{background:var(--surface-2);color:var(--ink-3)}
+
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:660px}
+th,td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+thead th{font-size:10px;letter-spacing:.13em;color:var(--ink-3);font-weight:700;background:var(--surface-2);border-bottom:1px solid var(--line-strong);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--surface-2)}
+td.r,th.r{text-align:right}
+td .sub{display:block;font-size:11px;color:var(--ink-3);line-height:1.45}
+td .code{display:block;font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.5;margin-top:1px}
+tr.fresh{animation:flash 2.4s ease-out}
+@keyframes flash{0%{background:var(--accent-soft)}100%{background:transparent}}
+.kind{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:2px;border:1px solid currentColor;white-space:nowrap}
+.k-kojin{color:#7A5AA8}.k-tenpo{color:#1E62C8}.k-koujo{color:#1D7A52}.k-motouke{color:#8A6A3A}
+.lic{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;padding:1px 5px;border-radius:2px;background:var(--volt-soft);color:var(--volt);font-weight:600;white-space:nowrap}
+.empty{padding:28px 16px;text-align:center;color:var(--ink-3);font-size:12.5px}
+
+.bar{height:6px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--ink-2)}
+.bar.late i{background:var(--bad)}
+.bar.done i{background:var(--ok)}
+
+/* ---------- gantt ---------- */
+.gantt{overflow-x:auto}
+.gantt-inner{min-width:940px;padding:4px 15px 15px}
+.g-row{display:grid;grid-template-columns:238px minmax(0,1fr);align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:7px 0}
+.g-row:last-child{border-bottom:0}
+.g-head{border-bottom:1px solid var(--line-strong);padding-top:8px}
+.g-name{font-size:12.5px;font-weight:500;line-height:1.35}
+.g-name span{display:block;font-size:10.5px;color:var(--ink-3);font-family:var(--mono)}
+.g-track{display:grid;gap:0;position:relative;min-height:22px;align-items:center}
+.g-track::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(to right,var(--line) 1px,transparent 1px);background-size:calc(100%/var(--cols)) 100%}
+.g-day{font-family:var(--mono);font-size:10px;color:var(--ink-3);text-align:center;line-height:1.2;padding-bottom:4px}
+.g-day.sun{color:var(--bad)}.g-day.sat{color:#1E62C8}
+.g-day b{display:block;font-size:12px;color:var(--ink-2);font-weight:600}
+.g-bar{grid-row:1;height:21px;border-radius:2px;display:flex;align-items:center;padding-inline:7px;font-size:10.5px;font-weight:700;color:#fff;position:relative;z-index:1;overflow:hidden;white-space:nowrap}
+.b-1{background:#7A5AA8}.b-2{background:#556373}.b-3{background:#8A6A3A}.b-4{background:#1E62C8}.b-5{background:#1D7A52}.b-6{background:#B07A0C}
+.g-bar.late{background:#C0362B}
+.g-today{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);z-index:2;pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 15px;border-top:1px solid var(--line);font-size:11px;color:var(--ink-3)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+/* ---------- crew ---------- */
+.crew{overflow-x:auto}
+.crew table{min-width:900px}
+.crew td{vertical-align:top;padding:8px 10px}
+.crew th.day{text-align:center;width:13%}
+td.rowlabel b{font-size:12.5px}
+td.rowlabel span{display:block;font-size:10.5px;color:var(--ink-3);line-height:1.45}
+.slot{border-radius:3px;padding:6px 8px;font-size:11.5px;line-height:1.45;background:var(--surface-2);border-left:3px solid var(--ink-2);margin-bottom:5px}
+.slot:last-child{margin-bottom:0}
+.slot b{display:block;font-size:11.5px;font-weight:700}
+.slot span{color:var(--ink-3);font-size:10.5px;font-family:var(--mono)}
+.slot.s-kojin{border-left-color:#7A5AA8}
+.slot.s-tenpo{border-left-color:#1E62C8}
+.slot.s-koujo{border-left-color:#1D7A52}
+.slot.s-motouke{border-left-color:#8A6A3A}
+.slot.s-conf{background:var(--bad-soft);border-left-color:var(--bad)}
+.slot.s-nolic{background:var(--volt-soft);border-left-color:var(--volt)}
+.slot.s-off{background:transparent;border-left-color:var(--line);color:var(--ink-3)}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border-radius:3px;background:var(--bad-soft);border:1px solid rgba(192,54,43,.3);font-size:12.5px;color:var(--ink)}
+.alert b{color:var(--bad);white-space:nowrap}
+.alert.tip{background:var(--warn-soft);border-color:rgba(176,122,12,.32)}
+.alert.tip b{color:var(--warn)}
+.alert.volt{background:var(--volt-soft);border-color:rgba(181,130,10,.35)}
+.alert.volt b{color:var(--volt)}
+.alert.good{background:var(--ok-soft);border-color:rgba(29,122,82,.3)}
+.alert.good b{color:var(--ok)}
+.weeknav{display:flex;align-items:center;gap:8px}
+.weeknav .num{font-size:12px;color:var(--ink-3)}
+
+/* ---------- 直接操作 ---------- */
+.g-bar{cursor:grab;touch-action:none}
+.g-bar:active{cursor:grabbing}
+.g-track.dragging .g-bar{transform:translateX(var(--dx,0px));opacity:.82;box-shadow:0 3px 10px -3px rgba(0,0,0,.5)}
+.g-ctl{display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-top:4px}
+.g-ctl em{font-style:normal;font-family:var(--body);font-size:10px;color:var(--ink-3);letter-spacing:.06em;margin-right:1px}
+.g-ctl em+em{margin-left:6px}
+.dragchip{position:fixed;z-index:70;background:var(--ink);color:var(--surface);font-family:var(--mono);font-size:11.5px;padding:3px 9px;border-radius:3px;white-space:nowrap;pointer-events:none;box-shadow:0 6px 18px -8px rgba(0,0,0,.7)}
+.dragchip[hidden]{display:none}
+.g-ctl button{font-family:var(--mono);font-size:11px;line-height:1;width:20px;height:19px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);border-radius:2px;cursor:pointer;padding:0}
+.g-ctl button:hover{border-color:var(--line-strong);color:var(--ink)}
+.g-ctl span{font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
+.hintbar{display:flex;flex-wrap:wrap;gap:6px 18px;padding:9px 15px;border-bottom:1px solid var(--line);background:var(--surface-2);font-size:11.5px;color:var(--ink-3)}
+.hintbar b{color:var(--ink-2)}
+.slot[draggable="true"]{cursor:grab}
+.slot[draggable="true"]:active{cursor:grabbing}
+.slot.ghost{opacity:.35}
+tr.drop td{background:var(--accent-soft)}
+tr.drop td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+td.ctl{white-space:nowrap}
+td.ctl .btn{padding:3px 7px;font-size:11px}
+td.ctl select{width:auto;padding:3px 6px;font-size:11.5px;margin-left:5px}
+.teamseg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:14px}
+.teamseg button{font-family:var(--body);font-size:12px;padding:9px 6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);border-radius:3px;cursor:pointer;line-height:1.35}
+.teamseg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface);font-weight:700}
+.teamseg button:hover{border-color:var(--line-strong)}
+
+/* ---------- 検索 ---------- */
+.search{display:flex;flex-direction:column;gap:4px;padding-inline:5px}
+.search input{width:100%;font-family:var(--body);font-size:12.5px;padding:7px 9px;border:1px solid var(--line-strong);border-radius:3px;background:var(--surface-2);color:var(--ink)}
+.search input::placeholder{color:var(--ink-3)}
+.search small{font-size:10.5px;color:var(--ink-3);min-height:14px}
+.search small b{color:var(--accent);font-family:var(--mono)}
+
+/* ---------- 表示切替 ---------- */
+.seg2{display:inline-flex;border:1px solid var(--line-strong);border-radius:3px;overflow:hidden}
+.seg2 button{font-family:var(--body);font-size:12px;padding:5px 12px;border:0;background:var(--surface);color:var(--ink-2);cursor:pointer;line-height:1.5}
+.seg2 button+button{border-left:1px solid var(--line-strong)}
+.seg2 button[aria-pressed="true"]{background:var(--ink);color:var(--surface);font-weight:700}
+
+/* ---------- 月カレンダー ---------- */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border-top:1px solid var(--line);touch-action:pan-y}
+.cal .cw{background:var(--surface-2);text-align:center;font-size:10.5px;padding:5px 0;color:var(--ink-3);font-weight:700;letter-spacing:.1em}
+.cal .cw.sun{color:var(--bad)}
+.cal .cw.sat{color:#1E62C8}
+.cell{background:var(--surface);min-height:104px;padding:5px 6px;display:flex;flex-direction:column;gap:3px;min-width:0;user-select:none;cursor:default}
+.cell[data-d]:hover{background:var(--surface-2)}
+.cell.out{background:var(--surface-2)}
+.cell .dnum{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-weight:600}
+.cell.sun .dnum{color:var(--bad)}
+.cell.sat .dnum{color:#1E62C8}
+.cell.today{box-shadow:inset 0 0 0 2px var(--accent)}
+.cell.today .dnum{color:var(--accent)}
+.chip{font-size:10.5px;line-height:1.4;padding:2px 5px;border-radius:2px;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip:hover{filter:brightness(1.12)}
+.chip.more{background:none;color:var(--ink-3);cursor:default;padding-left:2px}
+@media (max-width:640px){
+  .cell{min-height:76px;padding:4px}
+  .chip{font-size:9.5px;padding:1px 4px}
+}
+
+/* ---------- forms ---------- */
+.est{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:18px;align-items:start}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}
+.field>label{font-size:11.5px;font-weight:700;letter-spacing:.04em}
+.field .note{font-size:11px;color:var(--ink-3);line-height:1.55}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.seg button{font-family:var(--body);font-size:12px;font-weight:500;color:var(--ink-2);cursor:pointer;background:var(--surface-2);border:1px solid var(--line);border-radius:3px;padding:8px 6px;line-height:1.35}
+.seg button:hover{border-color:var(--line-strong)}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface);font-weight:700}
+select,input[type="number"],input[type="text"],input[type="date"]{font-family:var(--mono);font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:3px;padding:8px 10px;width:100%}
+select,input[type="text"]{font-family:var(--body);font-size:13px}
+input[type="range"]{width:100%;accent-color:var(--accent)}
+.inline{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.inline .unit{font-size:12px;color:var(--ink-3);white-space:nowrap}
+.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer}
+.chk input{accent-color:var(--accent);width:15px;height:15px}
+button:focus-visible,select:focus-visible,input:focus-visible,.nav:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(142px,1fr));gap:1px;background:var(--line);border-top:1px solid var(--line)}
+.totals div{background:var(--surface);padding:12px 15px}
+.totals dt{font-size:11px;color:var(--ink-3)}
+.totals dd{margin:2px 0 0;font-family:var(--mono);font-size:19px;font-weight:600}
+.totals .big dd{font-size:24px;color:var(--accent)}
+.totals .gp dd{color:var(--ok)}
+.summary-row td{background:var(--surface-2);font-weight:700}
+.qty-src{font-size:10.5px;color:var(--ink-3);font-family:var(--mono)}
+.cardfoot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 15px;border-top:1px solid var(--line);background:var(--surface-2)}
+.cardfoot p{margin:0;font-size:11.5px;color:var(--ink-3);max-width:52ch}
+
+/* ---------- 単価表 ---------- */
+.pbwrap{overflow-x:auto}
+.pbwrap table{min-width:860px}
+.pb-in{font-family:var(--mono);font-size:13px;padding:5px 7px;width:100%;min-width:86px;text-align:right;border:1px solid var(--line);background:var(--surface-2)}
+.pb-in:focus{background:var(--surface);border-color:var(--accent);color:var(--ink)}
+.pb-in.zero{color:var(--ink-3);background:transparent;border-style:dashed}
+td.pbcell{padding:5px 9px}
+.gpbadge{display:block;font-family:var(--mono);font-size:10px;margin-top:2px;text-align:right;color:var(--ink-3)}
+.gpbadge.thin{color:var(--bad)}
+.gpbadge.fat{color:var(--ok)}
+.pbhead{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:10px 15px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.pbhead label{font-size:11.5px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.pbhead select{width:auto;min-width:220px}
+.seg3{display:inline-flex;border:1px solid var(--line-strong);border-radius:3px;overflow:hidden}
+.seg3 button{font-family:var(--body);font-size:12px;padding:5px 12px;border:0;background:var(--surface);color:var(--ink-2);cursor:pointer;line-height:1.5;white-space:nowrap}
+.seg3 button+button{border-left:1px solid var(--line-strong)}
+.seg3 button[aria-pressed="true"]{background:var(--accent);color:#fff;font-weight:700}
+.bulk{display:grid;grid-template-columns:repeat(auto-fit,minmax(224px,1fr));gap:10px;padding:14px 15px;border-top:1px solid var(--line)}
+.bulkcard{border:1px solid var(--line);border-radius:3px;padding:10px 12px;background:var(--surface-2)}
+.bulkcard b{display:block;font-size:12px;margin-bottom:6px}
+.bulkcard .btnrow{gap:5px}
+.bulkcard .btn{padding:3px 8px;font-size:11px;font-weight:500}
+.cmp{overflow-x:auto}
+.cmp table{min-width:620px}
+.cmp td.win{background:var(--ok-soft)}
+.setgrid input{min-width:76px;text-align:right;font-family:var(--mono);font-size:13px;padding:5px 7px}
+.setgrid select{min-width:92px;padding:5px 7px;font-size:12.5px}
+.setgrid td{padding:6px 11px}
+
+/* ---------- flow / map ---------- */
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(152px,1fr));gap:10px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:12px 14px}
+.step .n{font-family:var(--mono);font-size:10.5px;color:var(--accent);letter-spacing:.1em}
+.step b{display:block;font-size:13px;margin-top:2px}
+.step p{margin:4px 0 0;font-size:11.5px;color:var(--ink-3);line-height:1.6}
+.step.auto{border-color:rgba(29,122,82,.4);background:var(--ok-soft)}
+.step.auto .n{color:var(--ok)}
+.step.auto p{color:var(--ink-2)}
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(274px,1fr));gap:14px}
+.mapcard{background:var(--surface);border:1px solid var(--line);border-radius:4px;overflow:hidden;display:flex;flex-direction:column}
+.mapcard h3{font-size:14px;padding:12px 15px 0;font-weight:700}
+.mapcard .body{padding:8px 15px 15px;display:flex;flex-direction:column;gap:9px;flex:1}
+.ba{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 9px;font-size:12px;line-height:1.6}
+.ba dt{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--ink-3);padding-top:3px}
+.ba dd{margin:0}
+.ba .now{color:var(--ink-2)}
+.ba .aft{color:var(--ink);font-weight:500}
+.mapcard footer{margin-top:auto;border-top:1px solid var(--line);padding:9px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;color:var(--ink-3);background:var(--surface-2)}
+.mapcard footer b{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:600}
+.phase{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:1px 6px;border:1px solid var(--line-strong);border-radius:2px;color:var(--ink-2)}
+.note-block{font-size:12px;color:var(--ink-3);line-height:1.85;max-width:78ch}
+.note-block b{color:var(--ink-2)}
+.demo-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-3);border:1px dashed var(--line-strong);border-radius:2px;padding:3px 9px}
+
+/* ---------- modal ---------- */
+.scrim{position:fixed;inset:0;background:rgba(8,13,19,.64);z-index:40;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+.scrim[hidden]{display:none}
+.modal{background:var(--surface);border-radius:5px;box-shadow:0 24px 64px -24px rgba(0,0,0,.6);width:100%;max-width:520px;margin:auto}
+.modal.wide{max-width:800px}
+.modal>header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.modal>header h2{font-size:15px;font-weight:700}
+.modal>header .x{background:none;border:0;font-size:20px;line-height:1;color:var(--ink-3);cursor:pointer;padding:2px 6px}
+.modal .mbody{padding:18px}
+.modal .mfoot{display:flex;justify-content:flex-end;gap:8px;padding:13px 18px;border-top:1px solid var(--line);background:var(--surface-2);flex-wrap:wrap}
+.modal .mfoot .left{margin-right:auto;font-size:11.5px;color:var(--ink-3);align-self:center}
+.recap{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12.5px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.recap dt{color:var(--ink-3);font-size:11.5px;white-space:nowrap}
+.recap dd{margin:0;font-weight:500}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:11px 20px;border-radius:4px;font-size:13px;font-weight:500;z-index:60;box-shadow:0 12px 32px -12px rgba(0,0,0,.6);max-width:90vw}
+.toast[hidden]{display:none}
+
+/* ---------- invoice sheet (fixed light colours: it is paper) ---------- */
+.sheetwrap{background:#848C95;padding:18px;display:flex;justify-content:center;overflow-x:auto}
+#sheet{width:210mm;min-height:297mm;background:#ffffff;color:#121821;padding:18mm 16mm;font-family:var(--body);font-size:10.5pt;line-height:1.65;position:relative;flex:none}
+#sheet .stamp{position:absolute;top:14mm;right:16mm;border:1.5px solid #C0362B;color:#C0362B;font-size:8pt;letter-spacing:.2em;padding:2px 8px;border-radius:2px;font-weight:700}
+#sheet h1{font-family:var(--disp);font-size:20pt;font-weight:700;letter-spacing:.32em;text-align:center;margin:0 0 10mm;color:#121821}
+#sheet .meta{display:flex;justify-content:space-between;gap:10mm;margin-bottom:8mm}
+#sheet .to{flex:1}
+#sheet .to .name{font-size:14pt;font-weight:700;border-bottom:1px solid #121821;padding-bottom:3px;margin-bottom:6px;color:#121821}
+#sheet .to p{margin:0;font-size:9.5pt;color:#38485C}
+#sheet .from{width:76mm;font-size:9pt;color:#38485C;text-align:left}
+#sheet .from b{display:block;font-size:11.5pt;color:#121821;margin-bottom:2px}
+#sheet .from .no{font-family:var(--mono);color:#6B7E92;margin-bottom:5px}
+#sheet .grand{background:#F1F3F6;border-left:4px solid #1550DC;padding:8px 12px;margin-bottom:7mm;display:flex;align-items:baseline;gap:14px}
+#sheet .grand span{font-size:10pt;color:#38485C}
+#sheet .grand b{font-family:var(--mono);font-size:20pt;font-weight:600;color:#121821}
+#sheet .subject{font-size:9.5pt;color:#38485C;margin-bottom:6mm;display:grid;grid-template-columns:auto 1fr;gap:3px 12px}
+#sheet .subject dt{color:#6B7E92;white-space:nowrap}
+#sheet .subject dd{margin:0;color:#121821}
+#sheet table{width:100%;min-width:0;border-collapse:collapse;font-size:9pt;margin-bottom:6mm}
+#sheet th{background:#121821;color:#ffffff;padding:5px 8px;font-size:8.5pt;letter-spacing:.06em;border:0;text-align:left}
+#sheet td{padding:4.5px 8px;border-bottom:1px solid #D4DAE1;color:#121821;background:#ffffff}
+#sheet td.r,#sheet th.r{text-align:right}
+#sheet tr.sum td{background:#F4F6F8;font-weight:700}
+#sheet tr.tot td{background:#121821;color:#ffffff;font-weight:700;font-size:10.5pt}
+#sheet .bank{border:1px solid #D4DAE1;padding:8px 12px;font-size:9pt;color:#38485C;margin-bottom:5mm}
+#sheet .bank b{color:#121821}
+#sheet .tail{font-size:8.5pt;color:#6B7E92;line-height:1.8}
+@media print{
+  body *{visibility:hidden}
+  .sheetwrap,.sheetwrap *{visibility:visible}
+  .sheetwrap{position:absolute;inset:0;padding:0;background:#fff;display:block}
+  #sheet{width:auto;box-shadow:none;padding:14mm}
+  @page{size:A4;margin:0}
+}
+
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .rail{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px 14px;border-right:0;border-bottom:1px solid var(--line);padding-block:14px}
+  .rail .navgroup{flex-direction:row;flex-wrap:wrap;gap:5px}
+  .rail .navgroup>span,.rail footer{display:none}
+  .nav{width:auto;border:1px solid var(--line);border-left-width:3px;border-radius:3px}
+  .est{grid-template-columns:1fr}
+  .sheetwrap{padding:8px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<style>img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="rail">
+    <div class="brand">
+      <span class="mark"><i></i>電設ボード</span>
+      <small>DENSETSU OPERATIONS / DEMO</small>
+    </div>
+    <div class="search">
+      <input type="search" id="q" placeholder="現場・工事番号・得意先で検索" aria-label="工事を検索">
+      <small id="qcount"></small>
+    </div>
+    <div class="navgroup" id="nav">
+      <span>業務</span>
+      <button class="nav" data-go="dash" aria-current="true"><span class="k">01</span>ダッシュボード</button>
+      <button class="nav" data-go="kotei"><span class="k">02</span>工程</button>
+      <button class="nav" data-go="jinin"><span class="k">03</span>人員・資格配置</button>
+      <button class="nav" data-go="mitsu"><span class="k">04</span>見積積算</button>
+      <button class="nav" data-go="tanka"><span class="k">05</span>単価表（区分別）</button>
+      <button class="nav" data-go="seikyu"><span class="k">06</span>請求・入金<span class="badge" id="nbadge" hidden>0</span></button>
+      <button class="nav" data-go="map"><span class="k">07</span>仕組み化マップ</button>
+    </div>
+    <footer>
+      <b>デモ用ダミーデータ</b>
+      案件・金額・人名・発行者はすべて架空です。画面はつながっていて、単価表の変更が見積・請求書まで通ります。
+      <button class="reset" id="resetbtn">初期状態に戻す</button>
+    </footer>
+  </nav>
+
+  <main class="main">
+
+    <!-- ============ 01 ============ -->
+    <section class="page" id="dash">
+      <div class="phead">
+        <div>
+          <span class="eyebrow">01 / Dashboard</span>
+          <h1>今日の現場と、期限のある申請。</h1>
+          <p>朝礼前に見る1画面。進行中の全現場・出来高・班の空き・請求の詰まりに加えて、電気工事でいちばん事故になりやすい<b>電力申請・消防届出・保安協会立会の期限</b>をまとめて監視します。数字はすべて下の一覧から計算しています。</p>
+        </div>
+        <span class="demo-tag">基準日 2026年10月2日（金）</span>
+      </div>
+
+      <dl class="kpis" id="kpis"></dl>
+
+      <div class="card">
+        <header>
+          <h2>工事台帳（進行中・請求待ち）</h2>
+          <div class="btnrow">
+            <button class="btn sm" id="tojob">見積から新規登録</button>
+          </div>
+        </header>
+        <div class="hintbar">
+          <span><b>◀ ▶</b> 着工日を1日ずつ動かす（工程表と配置ボードに即反映）</span>
+          <span><b>担当班</b> を選び直すと、重複判定と資格判定がその場でやり直されます</span>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>工事番号 / 現場</th><th>得意先区分</th><th>数量</th><th>工期</th><th>日程 / 担当班</th><th>進捗</th><th class="r">請負金額</th><th>状態</th><th></th></tr></thead>
+            <tbody id="jobrows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <header><h2>要対応アラート</h2><span class="hint">条件を満たした時点で自動で立ちます</span></header>
+        <div class="pad" style="display:flex;flex-direction:column;gap:9px" id="alerts"></div>
+      </div>
+    </section>
+
+    <!-- ============ 02 ============ -->
+    <section class="page" id="kotei" hidden>
+      <div class="phead">
+        <div>
+          <span class="eyebrow">02 / Schedule</span>
+          <h1>工程は工事テンプレから引く</h1>
+          <p>「調査・申請 → 仮設 → 撤去 → 配線・器具取付 → 試験・測定 → 検査・引渡」。電気工事は並びがほぼ固定です。受注登録すると台数や回路数から出した工期を工程比率で割り付け、日曜を飛ばして工程が自動生成されます。生成後は<b>バーを直接ドラッグして日程を動かせます</b>。</p>
+        </div>
+        <div class="weeknav">
+          <div class="seg2" id="viewseg">
+            <button type="button" data-v="gantt" aria-pressed="true">2週間</button>
+            <button type="button" data-v="month" aria-pressed="false">月カレンダー</button>
+          </div>
+          <button class="btn sm" id="gprev">◀</button>
+          <span class="num" id="glabel"></span>
+          <button class="btn sm" id="gnext">▶</button>
+        </div>
+      </div>
+
+      <div class="card" id="ganttcard">
+        <header><h2>全現場 工程表</h2><span class="hint">青の縦線が本日／赤は遅延中の工程</span></header>
+        <div class="hintbar">
+          <span>編集は3通り　①<b>バーを掴んで左右へドラッグ</b>＝日程を移動（掴んだ瞬間に日付が出ます）</span>
+          <span>②<b>バーをクリック</b>＝編集パネル（日程・工期・担当班）</span>
+          <span>③現場名の下の <b>日程 ◀ ▶ ／ 工期 − ＋</b> ボタン</span>
+          <span>期間の移動は左右<b>スワイプ</b></span>
+        </div>
+        <div class="gantt"><div class="gantt-inner" id="gantt"></div></div>
+        <div class="legend" id="glegend"></div>
+      </div>
+
+      <div class="card" id="monthcard" hidden>
+        <header><h2>月間工程カレンダー</h2><span class="hint">完了した工事も含めて1か月を俯瞰できます</span></header>
+        <div class="hintbar">
+          <span><b>日付をダブルクリック</b>でその日を含む2週間ガントへ</span>
+          <span>左右に<b>スワイプ</b>（またはドラッグ）で前月・翌月</span>
+          <span><b>チップをクリック</b>で工程・配置の編集</span>
+        </div>
+        <div class="cal" id="cal"></div>
+      </div>
+
+      <div class="card">
+        <header><h2>工事テンプレート</h2><span class="hint">標準歩掛・必要資格・申請の有無まで持たせます</span></header>
+        <div class="tablewrap"><table>
+          <thead><tr><th>テンプレート</th><th>工程の並び</th><th>必要資格</th><th>届出・申請</th><th class="r">標準歩掛</th></tr></thead>
+          <tbody id="tplrows"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ============ 03 ============ -->
+    <section class="page" id="jinin" hidden>
+      <div class="phead">
+        <div>
+          <span class="eyebrow">03 / Crew &amp; License</span>
+          <h1>誰が行けるかは、資格で決まる</h1>
+          <p>電気工事の配置は「空いているか」だけでは決められません。高圧は第一種、自火報は消防設備士。この画面は<b>二重割当と資格不足を同時に判定</b>します。<b>札を別の班へドラッグすれば振り替えられます</b>。</p>
+        </div>
+        <div class="weeknav">
+          <button class="btn sm" id="wprev">◀ 前週</button>
+          <span class="num" id="wlabel"></span>
+          <button class="btn sm" id="wnext">翌週 ▶</button>
+        </div>
+      </div>
+
+      <div id="confbox"></div>
+
+      <div class="card">
+        <header><h2>週間配置ボード</h2><span class="hint">工程から自動生成／黄色は資格不足</span></header>
+        <div class="hintbar">
+          <span><b>札を別の班の行へドラッグ</b>すると担当が入れ替わります</span>
+          <span><b>札をクリック</b>すれば班の変更と日程ずらしをまとめて操作できます</span>
+        </div>
+        <div class="crew"><table>
+          <thead><tr><th style="width:168px">班 / 資源</th><th class="day">月</th><th class="day">火</th><th class="day">水</th><th class="day">木</th><th class="day">金</th><th class="day">土</th></tr></thead>
+          <tbody id="crewrows"></tbody>
+        </table></div>
+      </div>
+
+      <div class="card">
+        <header><h2>稼働サマリー</h2><span class="hint">空いた班は翌週の着手候補・点検案件に回す</span></header>
+        <div class="tablewrap"><table>
+          <thead><tr><th>資源</th><th>保有資格</th><th>稼働日/6日</th><th style="width:180px">稼働率</th><th>担当中の現場</th></tr></thead>
+          <tbody id="utilrows"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- ============ 04 ============ -->
+    <section class="page" id="mitsu" hidden>
+      <div class="phead">
+        <div>
+          <span class="eyebrow">04 / Estimate</span>
+          <h1>台数を入れたら、見積が出る</h1>
+          <p>工事内容がほぼ同じなら、違いは「得意先区分」と「台数・回路数・延長」だけ。テンプレートに数量を流し込み、<b>区分ごとの単価表</b>を引いて内訳まで自動生成します。材料費と施工費を分けて持つので、法定福利費も自動で明示されます。</p>
+        </div>
+        <span class="demo-tag">単価は業界一般水準の仮値 / 商談後に自社単価表へ差し替え</span>
+      </div>
+
+      <div class="est">
+        <div class="card pad">
+          <div class="field">
+            <label for="tpl">工事テンプレート</label>
+            <select id="tpl"></select>
+            <span class="note" id="tplnote"></span>
+          </div>
+          <div class="field">
+            <label>得意先区分<span class="note" style="font-weight:400"> ／ 単価表が切り替わります</span></label>
+            <div class="seg" id="kindseg">
+              <button type="button" data-kind="kojin" aria-pressed="true">個人宅</button>
+              <button type="button" data-kind="tenpo">法人・店舗</button>
+              <button type="button" data-kind="koujo">法人・工場</button>
+              <button type="button" data-kind="motouke">元請下請</button>
+            </div>
+            <span class="note" id="kindnote"></span>
+          </div>
+          <div class="field">
+            <label for="qty" id="qtylabel">数量</label>
+            <div class="inline"><input type="number" id="qty" value="12" min="1" max="5000" step="1"><span class="unit" id="qtyunit">台</span></div>
+            <input type="range" id="qtyrange" value="12" min="1" max="200" step="1" aria-label="数量スライダー">
+          </div>
+          <div class="field">
+            <label for="len">配線・配管延長</label>
+            <div class="inline"><input type="number" id="len" value="90" min="0" max="5000" step="5"><span class="unit">m</span></div>
+          </div>
+          <div class="field">
+            <label for="days">想定工期<span class="note" style="font-weight:400"> ／ 歩掛から自動計算（手で上書き可）</span></label>
+            <div class="inline"><input type="number" id="days" value="1" min="1" max="200" step="1"><span class="unit">日</span></div>
+          </div>
+          <div class="field" style="margin-bottom:4px">
+            <label>現場条件</label>
+            <label class="chk"><input type="checkbox" id="night"> 夜間・停電作業（施工費 ＋30%）</label>
+            <label class="chk"><input type="checkbox" id="holiday"> 休日施工（施工費 ＋20%）</label>
+            <label class="chk"><input type="checkbox" id="high" checked> 高所作業・足場あり</label>
+            <label class="chk"><input type="checkbox" id="waste" checked> 既設撤去・産廃処分を含む</label>
+            <span class="note">夜間・休日の割増は<b>施工費にだけ</b>掛かります。材料費に割増を乗せてしまう誤りを構造的に防ぎます。</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <header><h2 id="esttitle">見積内訳</h2><span class="hint">数量は台数・延長・工期から自動展開</span></header>
+          <div class="tablewrap"><table>
+            <thead><tr><th>名称</th><th class="r">数量</th><th>単位</th><th class="r">材料単価</th><th class="r">施工単価</th><th class="r">金額</th></tr></thead>
+            <tbody id="estrows"></tbody>
+          </table></div>
+          <dl class="totals" id="esttotals"></dl>
+          <div class="cardfoot">
+            <p>承認するとこの内訳がそのまま工事台帳になります。再入力はありません。</p>
+            <button class="btn primary" id="orderbtn">この見積で受注する →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="note-block">
+        <b>この画面が置き換えるもの：</b>過去見積のExcelを探して開き、似た現場の数字を上書きして単価の消し忘れを探す作業。材料はメーカー見積から都度転記、施工費は職長の感覚。単価表を1か所で持てば、誰が作っても同じ粗利率で、承認前に「この現場は何%残るのか」が見えます。材料改定は<b>単価表だけを直せば以後の全見積に反映</b>されます。
+      </div>
+    </section>
+
+    <!-- ============ 05 ============ -->
+    <section class="page" id="tanka" hidden>
+      <div class="phead">
+        <div>
+          <span class="eyebrow">05 / Price Book</span>
+          <h1>個人宅と法人で、単価を分けて持つ</h1>
+          <p>同じ「コンセント1箇所」でも、個人宅・店舗・工場・元請下請で出す金額は違います。ここは<b>得意先区分ごとの単価を直接編集できる単価表</b>です。直した瞬間に見積・請求書・粗利まで通ります。原価を並べて置いているので、値引き交渉のときに<b>どこまで下げられるか</b>がその場で分かります。</p>
+        </div>
+        <span class="demo-tag">数値を書き換えて → 04 見積積算 に戻ると反映されています</span>
+      </div>
+
+      <div class="card">
+        <div class="pbhead">
+          <label for="pbtpl">工事テンプレート</label>
+          <select id="pbtpl"></select>
+          <div class="seg3" id="pbmode">
+            <button type="button" data-m="m" aria-pressed="true">材料単価</button>
+            <button type="button" data-m="l">施工単価</button>
+            <button type="button" data-m="t">材工共（計）</button>
+          </div>
+          <span class="hint" id="pbmodenote" style="font-size:11.5px;color:var(--ink-3)"></span>
+        </div>
+        <div class="pbwrap"><table>
+          <thead><tr>
+            <th>明細項目</th><th>単位</th><th class="r">原価（材工共）</th>
+            <th class="r">個人宅</th><th class="r">法人・店舗</th><th class="r">法人・工場</th><th class="r">元請下請</th>
+          </tr></thead>
+          <tbody id="pbrows"></tbody>
+        </table></div>
+        <div class="bulk" id="pbbulk"></div>
+      </div>
+
+      <div class="card">
+        <header><h2>得意先区分ごとの共通設定</h2><span class="hint">出張費・経費率・支払サイトも区分で変える</span></header>
+        <div class="tablewrap"><table class="setgrid">
+          <thead><tr><th>区分</th><th class="r">出張・基本料</th><th class="r">現場管理費</th><th class="r">一般管理費</th><th class="r">出精値引</th><th class="r">支払サイト</th><th>標準担当班</th></tr></thead>
+          <tbody id="setrows"></tbody>
+        </table></div>
+        <div class="cardfoot">
+          <p>個人宅は出張費と打合せ回数、工場は夜間停電と書類、下請は手間請け中心。区分で経費率を変えるのが実務に近い形です。</p>
+          <button class="btn sm" id="pbreset">単価表・区分設定を初期値に戻す</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <header><h2>同じ工事を4区分で見積比較</h2><span class="hint">04 見積積算でいま入力している条件のまま、区分だけを入れ替えた結果</span></header>
+        <div class="cmp"><table>
+          <thead><tr><th>得意先区分</th><th class="r">材料費</th><th class="r">施工費</th><th class="r">諸経費</th><th class="r">見積金額（税込）</th><th class="r">原価</th><th class="r">粗利率</th><th>支払サイト</th></tr></thead>
+          <tbody id="cmprows"></tbody>
+        </table></div>
+        <div class="cardfoot">
+          <p id="cmpnote"></p>
+        </div>
+      </div>
+
+      <div class="note-block">
+        <b>商談で確認したいこと：</b>いま単価表は誰が持っていて、個人宅向けと法人向けを分けているか。分けていない場合、個人宅で法人単価を出して粗利が消えているか、逆に法人へ個人宅単価を出して失注しているかのどちらかが起きています。ここを分けて持つだけで、見積のばらつきが減り、<b>値引きの限界ラインを現場の人間が自分で判断できる</b>ようになります。
+      </div>
+    </section>
+
+    <!-- ============ 06 ============ -->
+    <section class="page" id="seikyu" hidden>
+      <div class="phead">
+        <div>
+          <span class="eyebrow">06 / Billing</span>
+          <h1>完了したら、請求が立つ</h1>
+          <p>見積 → 受注 → 出来高 → 請求 → 入金消込を同じ工事番号でつなぎます。支払サイトは得意先区分から自動で入るので、個人宅の即金と工場の60日サイトが混ざりません。請求書はPDFで実際に保存できます。</p>
+        </div>
+      </div>
+
+      <div class="flow">
+        <div class="step"><span class="n">STEP 1</span><b>見積作成</b><p>テンプレ＋数量＋区分別単価表で自動積算。</p></div>
+        <div class="step auto"><span class="n">AUTO</span><b>受注登録</b><p>承認した見積がそのまま工事台帳になる。再入力なし。</p></div>
+        <div class="step auto"><span class="n">AUTO</span><b>工程・配置生成</b><p>工程と担当班が自動で埋まる。資格不足はその場で警告。</p></div>
+        <div class="step auto"><span class="n">AUTO</span><b>申請期限の監視</b><p>電力・消防・保安協会の提出期限を着工日から逆算。</p></div>
+        <div class="step"><span class="n">STEP 2</span><b>出来高入力</b><p>現場から進捗％をスマホで送るだけ。100%で完了。</p></div>
+        <div class="step auto"><span class="n">AUTO</span><b>請求書発行・消込</b><p>区分別サイトで期限を設定。入金遅れは経過日数でアラート。</p></div>
+      </div>
+
+      <div class="card">
+        <header><h2>請求・入金ステータス</h2><span class="hint">完了から発行までの経過日数を自動で監視</span></header>
+        <div class="tablewrap"><table>
+          <thead><tr><th>工事番号 / 得意先</th><th>区分</th><th class="r">請求額（税込）</th><th>発行 / 入金予定</th><th>状態</th><th class="r">経過</th><th></th></tr></thead>
+          <tbody id="billrows"></tbody>
+        </table></div>
+        <dl class="totals" id="billtotals"></dl>
+      </div>
+    </section>
+
+    <!-- ============ 07 ============ -->
+    <section class="page" id="map" hidden>
+      <div class="phead">
+        <div>
+          <span class="eyebrow">07 / Scope</span>
+          <h1>どこから仕組み化するか</h1>
+          <p>全部を一度に変えると現場が止まります。効果が出るのが早く、現場の負担が増えない順に並べました。ヒアリングでこの優先順位を一緒に確定させます。</p>
+        </div>
+      </div>
+      <div class="map" id="mapcards"></div>
+      <div class="card pad">
+        <h2 style="font-size:14px;margin-bottom:8px">ヒアリングで確認したいこと</h2>
+        <div class="note-block">
+          ① 直近1年の工事を得意先区分別に分けると何件・何%ずつか（個人宅／店舗／工場／下請のどれが主力か）<br>
+          ② 単価表は誰が持っていて、個人宅向けと法人向けを分けているか。何年更新されていないか<br>
+          ③ 材料の仕入れ値はどこで確認しているか（商社見積の都度確認か、仕入単価表があるか）<br>
+          ④ 第一種電気工事士・消防設備士は何名いて、その人に案件が集中していないか<br>
+          ⑤ 電力申請・消防届出・保安協会立会の期限管理は今どこに書かれているか<br>
+          ⑥ 工程と配置は今どこに書かれているか（ホワイトボード／Excel／頭の中）<br>
+          ⑦ 現場から事務所への報告手段（電話・LINE・帰社後の日報）と、竣工写真の整理担当<br>
+          ⑧ 年次点検・更新提案のリストはあるか（LED・分電盤・キュービクルの更新時期からの再提案）<br>
+          ⑨ 使用中の会計ソフトと、請求書の発行者・発行タイミング
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ modals ============ -->
+<div class="scrim" id="scrim" hidden>
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+    <header><h2 id="mtitle"></h2><button class="x" id="mclose" aria-label="閉じる">×</button></header>
+    <div class="mbody" id="mbody"></div>
+    <div class="mfoot" id="mfoot"></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* =========================================================
+   基準・共通
+   ========================================================= */
+const TODAY = new Date(2026,9,2);            // 2026-10-02（金）固定：デモの基準日
+const ISSUER = {
+  name:'株式会社 ひかり電設',  tel:'092-000-0000',
+  addr:'福岡県糟屋郡宇美町○○2-4-1', reg:'T0000000000000',
+  lic:'登録電気工事業者 福岡県知事 第0000号 ／ 建設業許可 福岡県知事（般-00）第00000号',
+  bank:'○○銀行 宇美支店 普通 0000000 カ）ヒカリデンセツ'
+};
+const yen = n => Math.round(n).toLocaleString('ja-JP');
+const d2s = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const s2d = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); };
+const fmt = s => { const d=s2d(s); return `${d.getMonth()+1}/${d.getDate()}`; };
+const fmtJ = s => { const d=s2d(s); return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`; };
+const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+const diffDays = (a,b) => Math.round((s2d(a)-s2d(b))/86400000);
+const WD = '日月火水木金土';
+
+/* 資格 */
+const LICS = {
+  first :'第一種電気工事士',
+  second:'第二種電気工事士',
+  weak  :'認定・弱電（通信）',
+  fire  :'消防設備士 甲4類',
+};
+
+/* =========================================================
+   工事テンプレート（電気工事）
+   per: qty=主数量 / len=配線延長 / days=工期 / set=一式（1）
+   mat=材料売価・個人宅基準 / lab=施工売価・個人宅基準 / c=原価（材工共）
+   waste=撤去処分を含む場合のみ計上 / high=高所作業ありの場合のみ計上
+   ========================================================= */
+const templates = {
+  led:{label:'LED照明改修（蛍光灯→LED器具交換）', qtyLabel:'器具台数', qtyUnit:'台', rate:18, lic:'second',
+    note:'既設器具の撤去と安定器の処理が工数の山。台数が主で、送り配線の改修を延長で拾います。',
+    appl:null, pcb:true,
+    phases:[['現地調査・器具確認',.08,1],['養生・仮設',.10,2],['既設器具撤去・安定器処理',.18,3],['LED器具取付・結線',.38,4],['点灯試験・絶縁測定',.14,5],['報告書・引渡',.12,6]],
+    items:[
+      {n:'LEDベースライト 40形2灯相当',u:'台',per:'qty',mat:11800,lab:4200,c:13750},
+      {n:'既設蛍光灯器具 撤去・取外し',u:'台',per:'qty',mat:0,lab:2600,c:2100,waste:true},
+      {n:'安定器処理・PCB含有確認',u:'台',per:'qty',mat:300,lab:900,c:1050,waste:true},
+      {n:'器具 産業廃棄物処分',u:'台',per:'qty',mat:0,lab:1100,c:900,waste:true},
+      {n:'送り配線・コネクタ改修',u:'m',per:'len',mat:380,lab:620,c:850},
+      {n:'高所作業（ローリングタワー・脚立）',u:'日',per:'days',mat:0,lab:14000,c:11200,high:true},
+      {n:'絶縁抵抗・照度測定',u:'人日',per:'days',f:0.4,mat:0,lab:12000,c:9600}]},
+
+  bunden:{label:'分電盤交換・単相三線化', qtyLabel:'分岐回路数', qtyUnit:'回路', rate:8, lic:'second',
+    note:'停電調整と電力会社申請が先行工程。回路数が主で、幹線の張替を延長で拾います。',
+    appl:{label:'電力会社 単三化・容量変更申請', lead:14},
+    phases:[['現地調査・電力申請',.14,1],['停電調整・養生',.08,2],['既設盤撤去',.12,3],['新盤設置・幹線接続',.30,4],['分岐回路 振替・結線',.22,4],['竣工試験・受電',.14,5]],
+    items:[
+      {n:'住宅用分電盤 主幹ELB付',u:'面',per:'set',mat:42000,lab:18000,c:51600},
+      {n:'分岐ブレーカ 20A 2P1E',u:'個',per:'qty',mat:1450,lab:1100,c:2200},
+      {n:'幹線 CVケーブル 14sq-3C',u:'m',per:'len',mat:1850,lab:900,c:2350},
+      {n:'幹線用 金属管・PF管配管',u:'m',per:'len',mat:620,lab:1400,c:1750},
+      {n:'既設盤 撤去・処分',u:'面',per:'set',mat:0,lab:16000,c:12800,waste:true},
+      {n:'分岐回路 振替・結線',u:'回路',per:'qty',mat:420,lab:2800,c:2750},
+      {n:'接地工事（D種）',u:'式',per:'set',mat:4800,lab:9500,c:12300},
+      {n:'停電作業・復電確認',u:'人日',per:'days',f:1.2,mat:0,lab:26000,c:20800},
+      {n:'電力会社申請・単三化手続',u:'式',per:'set',mat:0,lab:18000,c:14400}]},
+
+  outlet:{label:'コンセント・スイッチ増設／配線改修', qtyLabel:'施工箇所数', qtyUnit:'箇所', rate:6, lic:'second',
+    note:'個人宅で件数がいちばん多い工事。壁内通線と開口補修が読みづらく、見積のばらつきが出ます。',
+    appl:null,
+    phases:[['現地調査・ルート確認',.12,1],['養生',.08,2],['配管・通線',.34,4],['器具取付・結線',.26,4],['絶縁・極性確認',.12,5],['補修・清掃・引渡',.08,6]],
+    items:[
+      {n:'埋込コンセント 2口 接地付',u:'箇所',per:'qty',mat:980,lab:4200,c:4450},
+      {n:'埋込スイッチ・プレート',u:'箇所',per:'qty',f:0.6,mat:1250,lab:3400,c:4000},
+      {n:'VVF 2.0-2C 配線',u:'m',per:'len',mat:290,lab:620,c:800},
+      {n:'PF管・サドル配管',u:'m',per:'len',f:0.8,mat:240,lab:780,c:900},
+      {n:'壁内・天井内 通線手間',u:'箇所',per:'qty',mat:0,lab:5200,c:4150},
+      {n:'開口・はつり補修',u:'箇所',per:'qty',f:0.7,mat:700,lab:3800,c:3850},
+      {n:'既設器具 撤去・処分',u:'箇所',per:'qty',f:0.5,mat:0,lab:1800,c:1450,waste:true},
+      {n:'絶縁抵抗・極性確認',u:'人日',per:'days',f:0.3,mat:0,lab:11000,c:8800}]},
+
+  aircon:{label:'業務用エアコン入替＋専用回路', qtyLabel:'室内機台数', qtyUnit:'台', rate:1.2, lic:'second',
+    note:'フロン回収と揚重の段取りが工程を支配します。機器代が大きいので材料掛率の差がそのまま粗利に出ます。',
+    appl:{label:'フロン類 回収業者手配・行程管理票の準備', lead:3},
+    phases:[['現地調査・機種選定',.10,1],['養生・仮設',.08,2],['既設撤去・フロン回収',.16,3],['冷媒配管・ドレン',.26,4],['据付・専用回路・結線',.26,4],['真空引き・試運転',.14,5]],
+    items:[
+      {n:'天井カセット4方向 4馬力（室内外機）',u:'台',per:'qty',mat:528000,lab:92000,c:558000},
+      {n:'冷媒配管（ペアコイル・断熱）',u:'m',per:'len',mat:2600,lab:3200,c:5000},
+      {n:'ドレン配管・勾配確保',u:'m',per:'len',f:0.8,mat:980,lab:2400,c:2900},
+      {n:'専用回路増設（三相200V）',u:'回路',per:'qty',mat:18500,lab:32000,c:43450},
+      {n:'既設機 撤去・フロン回収処理',u:'台',per:'qty',mat:0,lab:42000,c:33600,waste:true},
+      {n:'揚重・クレーン作業',u:'日',per:'days',f:0.4,mat:0,lab:68000,c:54400,high:true},
+      {n:'真空引き・試運転調整',u:'台',per:'qty',mat:0,lab:18000,c:14400}]},
+
+  doryoku:{label:'動力設備工事（三相200V・機械／厨房）', qtyLabel:'動力回路数', qtyUnit:'回路', rate:2, lic:'second',
+    note:'機械搬入の日程に縛られます。盤改造と接地、相回転の確認までを1本の工程で持ちます。',
+    appl:null,
+    phases:[['現地調査・機器仕様確認',.12,1],['盤改造・仮設',.14,2],['配管・ケーブル敷設',.30,4],['機器接続・端子処理',.22,4],['絶縁・相回転試験',.14,5],['試運転・引渡',.08,6]],
+    items:[
+      {n:'動力分電盤（屋内自立）',u:'面',per:'set',mat:186000,lab:38000,c:201600},
+      {n:'電磁開閉器・サーマルリレー',u:'個',per:'qty',mat:18600,lab:6800,c:21850},
+      {n:'CVケーブル 8sq-3C',u:'m',per:'len',mat:1420,lab:860,c:1950},
+      {n:'金属管・ケーブルラック',u:'m',per:'len',f:0.9,mat:2100,lab:2600,c:4050},
+      {n:'接地工事（C種・D種）',u:'回路',per:'qty',mat:5200,lab:9800,c:12900},
+      {n:'機器接続・端子処理',u:'回路',per:'qty',mat:2400,lab:14000,c:14100},
+      {n:'既設盤・配線 撤去処分',u:'式',per:'set',mat:0,lab:48000,c:38400,waste:true},
+      {n:'絶縁抵抗・相回転試験',u:'人日',per:'days',f:0.5,mat:0,lab:13000,c:10400}]},
+
+  cubicle:{label:'キュービクル更新（高圧受変電設備）', qtyLabel:'設備容量', qtyUnit:'kVA', rate:60, lic:'first',
+    note:'第一種が必須。電力会社・保安協会との工程調整が最大の律速で、停電は休日・夜間になります。',
+    appl:{label:'電力会社 受電申請・保安協会 受電立会予約', lead:45},
+    phases:[['現地調査・保安協会協議',.14,1],['電力申請・工程調整',.16,1],['停電・既設撤去',.16,3],['基礎・搬入据付',.24,4],['高圧ケーブル接続',.16,4],['試験・受電立会',.14,5]],
+    items:[
+      {n:'屋外用キュービクル（受変電一式）',u:'kVA',per:'qty',mat:9800,lab:1600,c:9800},
+      {n:'高圧ケーブル CVT 38sq',u:'m',per:'len',mat:6800,lab:2800,c:8250},
+      {n:'基礎工事（コンクリート基礎）',u:'式',per:'set',mat:142000,lab:168000,c:279000},
+      {n:'搬入・据付（クレーン・輸送）',u:'式',per:'set',mat:0,lab:320000,c:256000,high:true},
+      {n:'既設キュービクル 撤去・処分',u:'式',per:'set',mat:0,lab:265000,c:212000,waste:true},
+      {n:'耐圧試験・保護継電器試験',u:'式',per:'set',mat:0,lab:185000,c:148000},
+      {n:'保安協会立会・受電立会',u:'人日',per:'days',f:0.6,mat:0,lab:48000,c:38400},
+      {n:'電力会社申請・工程協議',u:'式',per:'set',mat:0,lab:86000,c:68800},
+      {n:'停電作業（休日・夜間対応）',u:'人日',per:'days',f:1.5,mat:0,lab:38000,c:30400}]},
+
+  camera:{label:'防犯カメラ・LAN配線', qtyLabel:'カメラ台数', qtyUnit:'台', rate:3, lic:'weak',
+    note:'弱電。配線ルートと画角の確認が先行し、設定と操作説明まで含めて1件です。',
+    appl:null,
+    phases:[['現地調査・画角決定',.14,1],['配線ルート確保',.10,2],['LAN配線・成端',.32,4],['カメラ取付・調整',.24,4],['導通・映像試験',.10,5],['録画設定・操作説明',.10,6]],
+    items:[
+      {n:'ネットワークカメラ（屋外バレット・AI検知）',u:'台',per:'qty',mat:46000,lab:14000,c:51600},
+      {n:'PoE給電スイッチ 8ポート',u:'台',per:'set',mat:38000,lab:8000,c:39550},
+      {n:'NVR 録画装置 4TB',u:'台',per:'set',mat:128000,lab:22000,c:135000},
+      {n:'Cat6A LANケーブル配線',u:'m',per:'len',mat:320,lab:680,c:850},
+      {n:'成端・導通試験（RJ45）',u:'箇所',per:'qty',f:2,mat:450,lab:2400,c:2450},
+      {n:'屋外配管・防水処理',u:'m',per:'len',f:0.5,mat:680,lab:1900,c:2200},
+      {n:'高所取付（脚立・高所作業車）',u:'日',per:'days',f:0.5,mat:0,lab:22000,c:17600,high:true},
+      {n:'画角調整・録画設定・操作説明',u:'台',per:'qty',mat:0,lab:9500,c:7600}]},
+
+  solar:{label:'太陽光発電＋蓄電池設置', qtyLabel:'パネル容量', qtyUnit:'kW', rate:2.5, lic:'first',
+    note:'系統連系申請が先行し、承認待ちで工程が止まります。足場と屋根構造の確認が事前の山。',
+    appl:{label:'系統連系申請・事業計画認定', lead:60},
+    phases:[['現地調査・構造確認',.12,1],['系統連系申請',.18,1],['足場・架台設置',.18,2],['パネル・パワコン・蓄電池設置',.28,4],['連系試験・発電確認',.14,5],['受電・引渡説明',.10,6]],
+    items:[
+      {n:'太陽光モジュール',u:'kW',per:'qty',mat:86000,lab:24000,c:94600},
+      {n:'架台（屋根置き・金具）',u:'kW',per:'qty',mat:32000,lab:26000,c:49900},
+      {n:'パワーコンディショナ',u:'台',per:'set',mat:268000,lab:48000,c:284400},
+      {n:'蓄電池ユニット 9.8kWh',u:'台',per:'set',mat:1180000,lab:96000,c:1148400},
+      {n:'直流・交流配線／接続箱',u:'m',per:'len',mat:1100,lab:1400,c:2150},
+      {n:'足場・安全対策',u:'式',per:'set',mat:0,lab:185000,c:148000,high:true},
+      {n:'系統連系申請・事業計画認定',u:'式',per:'set',mat:0,lab:96000,c:76800},
+      {n:'連系試験・発電確認',u:'人日',per:'days',f:0.5,mat:0,lab:32000,c:25600}]},
+
+  jikeiho:{label:'自動火災報知設備（新設・更新）', qtyLabel:'感知器数', qtyUnit:'個', rate:12, lic:'fire',
+    note:'消防設備士が必須。消防署との事前協議と検査立会の日程が工程を決めます。',
+    appl:{label:'消防 設置届・着工届の提出', lead:10},
+    phases:[['現地調査・消防協議',.16,1],['配管・配線',.30,4],['感知器取付',.22,4],['受信機設置・結線',.14,4],['総合試験',.10,5],['消防検査・引渡',.08,6]],
+    items:[
+      {n:'煙感知器（光電式2種）',u:'個',per:'qty',mat:4200,lab:3800,c:6900},
+      {n:'熱感知器（差動式スポット）',u:'個',per:'qty',f:0.35,mat:3400,lab:3600,c:6000},
+      {n:'受信機 P型1級',u:'台',per:'set',mat:320000,lab:68000,c:349200},
+      {n:'発信機・表示灯・音響装置',u:'組',per:'qty',f:0.18,mat:18500,lab:9800,c:24350},
+      {n:'HP耐熱電線 配線',u:'m',per:'len',mat:420,lab:880,c:1100},
+      {n:'配管・ボックス',u:'m',per:'len',f:0.8,mat:380,lab:1100,c:1250},
+      {n:'既設受信機・感知器 撤去処分',u:'式',per:'set',mat:0,lab:62000,c:49600,waste:true},
+      {n:'総合試験・消防届出・検査立会',u:'式',per:'set',mat:0,lab:148000,c:118400}]},
+
+  interphone:{label:'インターホン・TVアンテナ（住宅）', qtyLabel:'施工箇所数', qtyUnit:'箇所', rate:4, lic:'second',
+    note:'個人宅の小口工事。単価は安いが件数で回ります。1件あたりの移動・出張費が効いてきます。',
+    appl:null,
+    phases:[['現地調査・受信確認',.14,1],['養生・仮設',.08,2],['既設撤去',.10,3],['配線・機器取付',.40,4],['受信レベル測定・調整',.18,5],['操作説明・引渡',.10,6]],
+    items:[
+      {n:'テレビドアホン（録画・ワイヤレス子機）',u:'台',per:'set',mat:48000,lab:16000,c:55050},
+      {n:'地デジ・BS/CSアンテナ（混合器含む）',u:'式',per:'set',mat:38000,lab:32000,c:60200},
+      {n:'同軸ケーブル S-5C-FB 配線',u:'m',per:'len',mat:280,lab:620,c:750},
+      {n:'分配器・ブースター',u:'台',per:'qty',f:0.5,mat:14800,lab:6800,c:18600},
+      {n:'既設機器 撤去・処分',u:'箇所',per:'qty',mat:0,lab:3200,c:2550,waste:true},
+      {n:'壁面取付・開口補修',u:'箇所',per:'qty',mat:900,lab:5400,c:5400},
+      {n:'屋根上・高所作業',u:'日',per:'days',f:0.6,mat:0,lab:19000,c:15200,high:true},
+      {n:'受信レベル測定・調整',u:'人日',per:'days',f:0.4,mat:0,lab:13000,c:10400}]},
+};
+const PHASE_NAMES = {1:'調査・申請',2:'仮設・養生',3:'撤去・処分',4:'配線・器具取付',5:'試験・測定',6:'検査・引渡'};
+const PHASE_COLORS = ['','#7A5AA8','#556373','#8A6A3A','#1E62C8','#1D7A52','#B07A0C'];
+
+/* =========================================================
+   得意先区分（初期値）／ 単価表の種
+   ========================================================= */
+const KIND_DEFAULTS = {
+  kojin  :{label:'個人宅（住宅）',        short:'個人宅', matR:1.00, labR:1.15, genba:.08, ippan:.12, trip:8000, disc:0,    site:15, team:'B班',
+    note:'定価販売が通る代わりに打合せ回数が多く、1件あたりの移動も発生します。出張・基本料を別立てで持ちます。'},
+  tenpo  :{label:'法人・店舗／オフィス',  short:'店舗法人', matR:0.92, labR:1.00, genba:.10, ippan:.10, trip:0,    disc:0,    site:30, team:'C班',
+    note:'相見積が前提。材料は仕入掛率で出し、営業時間外作業の割増で調整します。'},
+  koujo  :{label:'法人・工場／高圧',      short:'工場法人', matR:0.86, labR:0.92, genba:.13, ippan:.09, trip:0,    disc:.02,  site:60, team:'A班',
+    note:'数量がまとまるので単価は下がりますが、夜間停電と書類の工数を現場管理費に織り込みます。'},
+  motouke:{label:'元請下請（ゼネコン・設備）', short:'下請', matR:0.80, labR:0.82, genba:.09, ippan:.07, trip:0,    disc:.03,  site:60, team:'C班',
+    note:'手間請け中心。単価は最も低く、歩掛で勝負する区分です。ここの粗利率は常に監視対象。'},
+};
+const KIND_KEYS = ['kojin','tenpo','koujo','motouke'];
+
+/* 班・資源 */
+const RESOURCES = [
+  {id:'A班', sub:'職長 田中（第一種）ほか2名', lic:['first','second']},
+  {id:'B班', sub:'職長 井上（第二種）ほか2名', lic:['second']},
+  {id:'C班', sub:'職長 松尾（第二種・通信）ほか1名', lic:['second','weak']},
+  {id:'消防設備班', sub:'甲4類 吉田 ほか1名', lic:['fire','second']},
+  {id:'高所作業車 12m', sub:'車両', lic:[]},
+  {id:'高圧試験器一式', sub:'機材', lic:[]},
+];
+const TEAMS = RESOURCES.filter(r=>r.lic.length).map(r=>r.id);
+
+/* =========================================================
+   単価表（編集可能な状態）
+   PB[tplKey][itemIndex][kindKey] = {m: 材料単価, l: 施工単価}
+   ========================================================= */
+let PB, kinds;
+function seedPriceBook(){
+  kinds = JSON.parse(JSON.stringify(KIND_DEFAULTS));
+  PB = {};
+  Object.entries(templates).forEach(([tk,t])=>{
+    PB[tk] = t.items.map(it=>{
+      const row={};
+      KIND_KEYS.forEach(kk=>{
+        row[kk] = { m: Math.round(it.mat*kinds[kk].matR), l: Math.round(it.lab*kinds[kk].labR) };
+      });
+      return row;
+    });
+  });
+}
+
+/* =========================================================
+   積算エンジン
+   ========================================================= */
+const FUKURI_RATE = 0.185;    // 法定福利費（労務費相当に対して）
+function estimate(tplKey, kindKey, qty, len, days, opt){
+  const t=templates[tplKey], k=kinds[kindKey], pb=PB[tplKey];
+  let labMul=1;
+  if(opt.night)   labMul*=1.30;   // 夜間・停電：施工費のみ
+  if(opt.holiday) labMul*=1.20;   // 休日：施工費のみ
+  const drv={qty,len,days,set:1};
+  const rows = t.items.map((it,i)=>({it,i}))
+    .filter(({it})=>!(it.waste && !opt.waste))
+    .filter(({it})=>!(it.high  && !opt.high))
+    .map(({it,i})=>{
+      const q = (drv[it.per]||0)*(it.f??1);
+      const p = pb[i][kindKey];
+      const mu = Math.round(p.m);
+      const lu = Math.round(p.l*labMul);
+      return {n:it.n,u:it.u,q,mu,lu,unit:mu+lu,mat:q*mu,lab:q*lu,amt:q*(mu+lu),cost:q*it.c,src:it.per};
+    });
+  const matTotal = rows.reduce((s,r)=>s+r.mat,0);
+  const labTotal = rows.reduce((s,r)=>s+r.lab,0);
+  const direct   = matTotal+labTotal;
+  const trip     = k.trip;
+  const fukuri   = labTotal*FUKURI_RATE;
+  const genba    = (direct+trip+fukuri)*k.genba;
+  const ippan    = (direct+trip+fukuri+genba)*k.ippan;
+  const sub      = direct+trip+fukuri+genba+ippan;
+  const disc     = sub*k.disc;
+  const net      = sub-disc;
+  const cost     = rows.reduce((s,r)=>s+r.cost,0);
+  return {rows,matTotal,labTotal,direct,trip,fukuri,genba,ippan,sub,disc,net,cost,
+          gp: net? (net-cost)/net : 0, tax:net*0.10, total:net*1.10,
+          keihi: trip+fukuri+genba+ippan-disc};
+}
+function autoDays(tplKey, qty){
+  const t=templates[tplKey];
+  return Math.max(1, Math.ceil((qty||1)/t.rate));
+}
+/* 日曜を飛ばして稼働日を積む */
+function buildSchedule(tplKey, startStr, days){
+  const t=templates[tplKey];
+  let cursor=s2d(startStr), out=[];
+  const alloc=t.phases.map(p=>Math.max(1,Math.round(p[1]*days)));
+  t.phases.forEach((p,i)=>{
+    while(cursor.getDay()===0) cursor=addDays(cursor,1);
+    const s=new Date(cursor);
+    let n=alloc[i];
+    while(n>1){ cursor=addDays(cursor,1); while(cursor.getDay()===0) cursor=addDays(cursor,1); n--; }
+    out.push({name:p[0], cls:p[2], start:d2s(s), end:d2s(cursor)});
+    cursor=addDays(cursor,1);
+  });
+  return out;
+}
+
+/* =========================================================
+   初期データ
+   ========================================================= */
+let state, seq;
+function seed(){
+  seedPriceBook();
+  seq={job:7, inv:3};
+  const mk=(no,name,client,kind,tpl,qty,len,start,days,prog,status,extra)=>{
+    const e=estimate(tpl,kind,qty,len,days,{waste:true,high:true});
+    return Object.assign({no,name,client,kind,tpl,qty,len,start,days,prog,status,delay:0,
+      team:kinds[kind].team, sch:buildSchedule(tpl,start,days), est:e, inv:null}, extra||{});
+  };
+  state={ jobs:[
+    mk('E-2609-14','宇美町 糟屋精機 第2工場 LED照明改修','糟屋精機 株式会社','koujo','led',180,140,'2026-09-24',10,58,'active'),
+    mk('E-2610-02','粕屋町 ベーカリー大隈 分電盤交換・単三化','有限会社 大隈商店','tenpo','bunden',14,32,'2026-09-30',2,35,'active',{delay:1}),
+    mk('E-2609-11','志免町 桜丘2丁目 個人宅 コンセント増設','原田 様','kojin','outlet',6,48,'2026-09-29',1,90,'active'),
+    mk('E-2610-03','須恵町 旬菜厨房 業務用エアコン入替','株式会社 旬菜厨房','tenpo','aircon',3,42,'2026-10-07',3,0,'draft'),
+    mk('E-2610-05','篠栗町 九州テクノ製作所 キュービクル更新','九州テクノ製作所','koujo','cubicle',300,85,'2026-11-20',5,0,'draft',{team:'B班'}),
+    mk('E-2610-01','宇美町 四王寺坂 個人宅 ドアホン・アンテナ','川口 様','kojin','interphone',2,34,'2026-10-06',1,0,'draft'),
+    mk('E-2609-08','新宮町 佐野不動産 本社 防犯カメラ・LAN','佐野不動産 株式会社','tenpo','camera',8,220,'2026-09-14',3,100,'done',{doneAt:'2026-09-19'}),
+    mk('E-2609-02','久山町 個人宅 太陽光＋蓄電池','藤本 様','kojin','solar',5.6,46,'2026-09-07',3,100,'done',{doneAt:'2026-09-12',team:'A班'}),
+  ], invoices:[] };
+  const billed=mk('E-2609-05','粕屋町 九州テクノ製作所 動力設備増設','九州テクノ製作所','koujo','doryoku',4,66,'2026-09-02',2,100,'billed',{doneAt:'2026-09-08'});
+  billed.inv={no:'I-2609-019', issued:'2026-09-08', due:'2026-11-07', total:billed.est.total, paidAt:null};
+  const paid=mk('E-2608-21','宇美町 ひばり福祉会 自動火災報知設備更新','社会福祉法人 ひばり福祉会','koujo','jikeiho',46,310,'2026-08-10',4,100,'paid',{doneAt:'2026-08-15',team:'消防設備班'});
+  paid.inv={no:'I-2608-018', issued:'2026-08-20', due:'2026-10-19', total:paid.est.total, paidAt:'2026-09-30'};
+  state.jobs.push(billed,paid);
+}
+seed();
+
+/* =========================================================
+   共通UI
+   ========================================================= */
+const $ = id => document.getElementById(id);
+let toastT;
+let q='';
+function matches(j){
+  if(!q) return true;
+  return [j.no,j.name,j.client,kinds[j.kind].label,kinds[j.kind].short,templates[j.tpl].label,j.team]
+    .join(' ').toLowerCase().includes(q);
+}
+function shortName(n){ return n.replace(/^.{0,4}[町市区]\s?/,''); }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,3800); }
+function go(id){
+  document.querySelectorAll('.nav').forEach(b=>b.setAttribute('aria-current', b.dataset.go===id));
+  document.querySelectorAll('.page').forEach(p=>p.hidden = p.id!==id);
+  window.scrollTo({top:0,behavior:'instant'});
+}
+document.querySelectorAll('.nav').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+$('tojob').addEventListener('click',()=>go('mitsu'));
+$('resetbtn').addEventListener('click',()=>{ seed(); syncForm(); calc(); renderAll(); go('dash'); toast('単価表を含めて初期状態に戻しました。'); });
+$('q').addEventListener('input',e=>{ q=e.target.value.trim().toLowerCase(); renderAll(); });
+function updateCount(){
+  $('qcount').innerHTML = q ? `該当 <b>${state.jobs.filter(matches).length}</b> 件 / 全 ${state.jobs.length} 件` : '';
+}
+function openModal(title, bodyHTML, footHTML, wide){
+  $('mtitle').textContent=title; $('mbody').innerHTML=bodyHTML; $('mfoot').innerHTML=footHTML;
+  $('modal').classList.toggle('wide', !!wide);
+  $('scrim').hidden=false;
+}
+function closeModal(){ $('scrim').hidden=true; }
+$('mclose').addEventListener('click',closeModal);
+$('scrim').addEventListener('mousedown',e=>{ if(e.target===$('scrim')) closeModal(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('scrim').hidden) closeModal(); });
+
+/* =========================================================
+   01 ダッシュボード
+   ========================================================= */
+const STATUS = {
+  draft :['p-idle','着手前'], active:['p-run','施工中'],
+  done  :['p-ok','完了・未請求'], billed:['p-warn','請求済・入金待ち'], paid:['p-ok','入金済'],
+};
+function job(no){ return state.jobs.find(j=>j.no===no); }
+function isLate(j){ return j.status==='active' && j.delay>0; }
+function endOf(j){ return j.sch[j.sch.length-1].end; }
+function teamOf(id){ return RESOURCES.find(r=>r.id===id); }
+function licOk(j, team){
+  const need=templates[j.tpl].lic, r=teamOf(team||j.team);
+  return !r || !r.lic.length ? true : r.lic.includes(need);
+}
+function applDue(j){
+  const a=templates[j.tpl].appl;
+  if(!a) return null;
+  return {label:a.label, due:d2s(addDays(s2d(j.start), -a.lead)), lead:a.lead};
+}
+
+function renderDash(){
+  const js=state.jobs;
+  const running=js.filter(j=>j.status==='draft'||j.status==='active');
+  const unbilled=js.filter(j=>j.status==='done');
+  const unbilledAmt=unbilled.reduce((s,j)=>s+j.est.total,0);
+  const maxWait=Math.max(0,...unbilled.map(j=>diffDays(d2s(TODAY), j.doneAt||endOf(j))));
+  const dekidaka=js.filter(j=>j.status!=='draft').reduce((s,j)=>s+j.est.net*j.prog/100,0);
+  const alerts=buildAlerts();
+  const licNg=running.filter(j=>!licOk(j)).length;
+
+  $('kpis').innerHTML=`
+    <div class="kpi"><dt>進行中の現場</dt><dd class="num">${running.length}<small>件</small></dd>
+      <span class="delta">着手前 <b class="num">${running.filter(j=>j.status==='draft').length}</b>／施工中 <b class="num">${running.filter(j=>j.status==='active').length}</b></span></div>
+    <div class="kpi"><dt>出来高（進捗ベース・税抜）</dt><dd class="num">${(dekidaka/1e6).toFixed(1)}<small>百万円</small></dd>
+      <span class="delta">月次目標 18.0 に対し <b class="num">${(dekidaka/18e6*100).toFixed(1)}%</b></span></div>
+    <div class="kpi ${unbilled.length?'flag':''}"><dt>未請求の完了工事</dt><dd class="num">${unbilled.length}<small>件</small></dd>
+      <span class="delta">金額 <b class="num">${yen(unbilledAmt)}</b> 円${unbilled.length?` ／ 最長 <b class="num">${maxWait}</b> 日経過`:''}</span></div>
+    <div class="kpi"><dt>請求済・未入金</dt><dd class="num">${yen(js.filter(j=>j.status==='billed').reduce((s,j)=>s+j.inv.total,0)/1e4)}<small>万円</small></dd>
+      <span class="delta">件数 <b class="num">${js.filter(j=>j.status==='billed').length}</b> 件</span></div>
+    <div class="kpi ${licNg?'hot':''}"><dt>資格が足りない配置</dt><dd class="num">${licNg}<small>件</small></dd>
+      <span class="delta">高圧は第一種／自火報は消防設備士</span></div>
+    <div class="kpi ${alerts.length?'flag':''}"><dt>要対応アラート</dt><dd class="num">${alerts.length}<small>件</small></dd>
+      <span class="delta">遅延・重複・資格・申請期限・請求漏れ</span></div>`;
+
+  const rowsHtml = js.filter(j=>j.status!=='paid').filter(matches).map(j=>{
+    const t=templates[j.tpl];
+    const st=STATUS[isLate(j)?'active':j.status];
+    const label=isLate(j)?`遅延${j.delay}日`:st[1];
+    const cls=isLate(j)?'p-bad':st[0];
+    let act='';
+    if(j.status==='draft') act=`<button class="btn sm" data-start="${j.no}">着工する</button>`;
+    else if(j.status==='active') act=`<button class="btn sm" data-prog="${j.no}">出来高入力</button>`;
+    else if(j.status==='done') act=`<button class="btn sm primary" data-bill="${j.no}">請求書発行</button>`;
+    else if(j.status==='billed') act=`<button class="btn sm" data-paid="${j.no}">入金を記録</button>`;
+    const movable=j.status==='draft'||j.status==='active';
+    const ctl = movable
+      ? `<button class="btn sm" data-shift="${j.no}" data-v="-1" title="着工日を1日前へ">◀</button>
+         <button class="btn sm" data-shift="${j.no}" data-v="1" title="着工日を1日後ろへ">▶</button>
+         <select data-team="${j.no}" aria-label="${j.no} の担当班">
+           ${TEAMS.map(t2=>`<option ${j.team===t2?'selected':''}>${t2}</option>`).join('')}
+         </select>${licOk(j)?'':'<span class="lic" style="display:block;margin-top:4px" title="必要資格を満たしていません">資格不足</span>'}`
+      : `<span class="sub">—</span>`;
+    return `<tr class="${j.fresh?'fresh':''}">
+      <td><b>${j.name}</b><span class="code">${j.no} / ${t.label}</span></td>
+      <td><span class="kind k-${j.kind}">${kinds[j.kind].short}</span></td>
+      <td class="num">${j.qty.toLocaleString()}${t.qtyUnit}${j.len?`<span class="sub">配線 ${j.len}m</span>`:''}</td>
+      <td class="num" style="font-size:12px;white-space:nowrap">${fmt(j.start)} - ${fmt(endOf(j))}</td>
+      <td class="ctl">${ctl}</td>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div class="bar ${j.prog>=100?'done':(isLate(j)?'late':'')}"><i style="width:${j.prog}%"></i></div>
+        <span class="num" style="font-size:11.5px;color:var(--ink-3)">${j.prog}%</span></div></td>
+      <td class="r num">${yen(j.est.total)}</td>
+      <td><span class="pill ${cls}">${label}</span></td>
+      <td class="r">${act}</td></tr>`;
+  }).join('');
+  $('jobrows').innerHTML = rowsHtml || `<tr><td colspan="9"><div class="empty">${q?`「${q}」に一致する工事はありません。`:'表示できる工事がありません。'}</div></td></tr>`;
+  js.forEach(j=>delete j.fresh);
+
+  $('alerts').innerHTML = alerts.length
+    ? alerts.map(a=>`<div class="alert ${a.cls}"><b>${a.tag}</b><span>${a.msg}</span></div>`).join('')
+    : `<div class="alert good"><b>対応待ちなし</b><span>遅延・配置重複・資格不足・申請期限・請求漏れ、いずれも発生していません。</span></div>`;
+}
+function buildAlerts(){
+  const out=[];
+  state.jobs.filter(isLate).forEach(j=>out.push({cls:'',tag:'遅延',
+    msg:`${j.no} ${j.name}：予定より${j.delay}日押しています。後工程と試験の立会日に影響します。`}));
+  state.jobs.filter(j=>['draft','active'].includes(j.status)&&!licOk(j)).forEach(j=>out.push({cls:'volt',tag:'資格不足',
+    msg:`${j.no} ${j.name} は「${LICS[templates[j.tpl].lic]}」が必要ですが、担当が ${j.team}（${teamOf(j.team).lic.map(l=>LICS[l]).join('・')}）になっています。`}));
+  conflicts().forEach(c=>out.push({cls:'',tag:'配置重複',
+    msg:`${fmt(c.date)}（${WD[s2d(c.date).getDay()]}）${c.res} が ${c.jobs.join(' と ')} で二重に割り当てられています。`}));
+  state.jobs.filter(j=>j.status==='draft').forEach(j=>{
+    const a=applDue(j); if(!a) return;
+    const left=diffDays(a.due, d2s(TODAY));
+    if(left<=21) out.push({cls:left<0?'':'tip',tag:'申請期限',
+      msg:`${j.no}：${a.label} の提出目安は ${fmt(a.due)}（着工 ${fmt(j.start)} の${a.lead}日前）。${left<0?`<b>${-left}日超過しています。</b>`:`残り ${left} 日。`}`});
+  });
+  state.jobs.filter(j=>j.status==='done').forEach(j=>{
+    const n=diffDays(d2s(TODAY), j.doneAt||endOf(j));
+    out.push({cls:'tip',tag:'請求漏れ',msg:`${j.no} ${j.name} は ${fmt(j.doneAt||endOf(j))} 完了、${n}日経過して請求書が未発行です。`});
+  });
+  state.jobs.filter(j=>templates[j.tpl].pcb && j.status==='active').forEach(j=>out.push({cls:'tip',tag:'PCB確認',
+    msg:`${j.no}：1977年以前の安定器が出た場合はPCB含有の確認と保管が必要です。撤去前に型番を記録してください。`}));
+  return out;
+}
+$('jobrows').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.start) startJob(b.dataset.start);
+  if(b.dataset.prog)  progressModal(b.dataset.prog);
+  if(b.dataset.bill)  issueInvoice(b.dataset.bill);
+  if(b.dataset.paid)  markPaid(b.dataset.paid);
+  if(b.dataset.shift) shiftJob(b.dataset.shift,+b.dataset.v);
+});
+$('jobrows').addEventListener('change',e=>{ const s=e.target.closest('select[data-team]'); if(s) setTeam(s.dataset.team,s.value); });
+
+/* ---- 操作 ---- */
+function startJob(no){ const j=job(no); j.status='active'; j.prog=5; j.fresh=1; renderAll(); toast(`${no} を着工にしました。工程と配置に反映しています。`); }
+function progressModal(no){
+  const j=job(no);
+  openModal(`出来高入力 — ${j.name}`,
+    `<dl class="recap">
+       <dt>工事番号</dt><dd class="num">${j.no}</dd>
+       <dt>請負金額</dt><dd class="num">${yen(j.est.total)} 円（税込）</dd>
+       <dt>工期</dt><dd class="num">${fmt(j.start)} - ${fmt(endOf(j))}</dd>
+       <dt>担当</dt><dd>${j.team}</dd></dl>
+     <div class="field"><label for="pval">進捗率</label>
+       <input type="range" id="pval" min="0" max="100" step="5" value="${j.prog}">
+       <div class="inline"><input type="number" id="pnum" min="0" max="100" step="5" value="${j.prog}"><span class="unit">%</span></div>
+       <span class="note">出来高 <b class="num" id="pamt"></b> 円（税抜・進捗按分）。100%にすると完了になり、請求書を発行できます。</span></div>
+     <label class="chk" style="margin-top:4px"><input type="checkbox" id="pdelay" ${j.delay?'checked':''}> 遅延が発生している（工程表で赤く表示）</label>`,
+    `<span class="left">現場からスマホで送る想定の画面です</span>
+     <button class="btn" onclick="closeModal()">やめる</button>
+     <button class="btn primary" id="psave">記録する</button>`);
+  const sync=v=>{ $('pval').value=v; $('pnum').value=v; $('pamt').textContent=yen(j.est.net*v/100); };
+  sync(j.prog);
+  $('pval').addEventListener('input',e=>sync(e.target.value));
+  $('pnum').addEventListener('input',e=>sync(Math.max(0,Math.min(100,+e.target.value||0))));
+  $('psave').addEventListener('click',()=>{
+    j.prog=+$('pval').value; j.delay=$('pdelay').checked?(j.delay||2):0;
+    if(j.prog>=100){ j.status='done'; j.doneAt=d2s(TODAY); j.delay=0; }
+    closeModal(); renderAll();
+    toast(j.prog>=100 ? `${j.no} を完了にしました。請求待ちに入っています。` : `${j.no} の出来高を ${j.prog}% で記録しました。`);
+  });
+}
+function markPaid(no){ const j=job(no); j.status='paid'; j.inv.paidAt=d2s(TODAY); renderAll(); toast(`${no} の入金を消し込みました。`); }
+
+function reschedule(j){ j.sch=buildSchedule(j.tpl,j.start,j.days); }
+function shiftJob(no,delta){
+  const j=job(no); if(!j||!['draft','active'].includes(j.status)) return;
+  j.start=d2s(addDays(s2d(j.start),delta)); reschedule(j); renderAll();
+  const a=applDue(j);
+  toast(`${j.no} の工期を ${fmt(j.start)} - ${fmt(endOf(j))} に動かしました。${a?`${a.label}の提出目安も ${fmt(a.due)} に移りました。`:''}`);
+}
+function setDays(no,delta){
+  const j=job(no); if(!j) return;
+  j.days=Math.max(1,j.days+delta); reschedule(j); renderAll();
+  toast(`${j.no} の工期を ${j.days}日間（${fmt(j.start)} - ${fmt(endOf(j))}）にしました。`);
+}
+function setTeam(no,team){
+  const j=job(no); if(!j||j.team===team) return;
+  j.team=team; renderAll();
+  const c=conflicts().length;
+  const lic=licOk(j)?'':`ただし ${team} は「${LICS[templates[j.tpl].lic]}」を満たしていません。`;
+  toast(`${j.no} の担当を ${team} に振り替えました。${c?`資源の重複は残り ${c} 件。`:'資源の重複は解消しました。'}${lic}`);
+}
+
+/* ガント：ドラッグで日程移動／クリックで編集 */
+let gdrag=null;
+const chip=document.createElement('div'); chip.className='dragchip'; chip.hidden=true;
+document.body.appendChild(chip);
+function showChip(e,j,d){
+  const ns=d2s(addDays(s2d(j.start),d));
+  const sch=buildSchedule(j.tpl,ns,j.days);
+  const head = d===0 ? 'ドラッグで日程を移動' : (d>0?`＋${d}日`:`−${-d}日`);
+  chip.textContent=`${head}　${fmt(ns)} - ${fmt(sch[sch.length-1].end)}`;
+  chip.style.left=(e.clientX+16)+'px'; chip.style.top=(e.clientY-36)+'px'; chip.hidden=false;
+}
+$('gantt').addEventListener('pointerdown',e=>{
+  const bar=e.target.closest('.g-bar'); if(!bar) return;
+  const track=bar.closest('.g-track[data-no]'); if(!track) return;
+  const j=job(track.dataset.no); if(!j) return;
+  gdrag={j,x0:e.clientX,w:track.getBoundingClientRect().width/GCOLS,track,d:0,moved:false};
+  track.classList.add('dragging'); showChip(e,j,0); e.preventDefault();
+});
+document.addEventListener('pointermove',e=>{
+  if(!gdrag) return;
+  const px=e.clientX-gdrag.x0;
+  if(Math.abs(px)>3) gdrag.moved=true;
+  gdrag.d=Math.round(px/gdrag.w);
+  gdrag.track.style.setProperty('--dx',px+'px');
+  showChip(e,gdrag.j,gdrag.d);
+});
+document.addEventListener('pointerup',()=>{
+  if(!gdrag) return;
+  const {j,d,track,moved}=gdrag; gdrag=null;
+  track.classList.remove('dragging'); track.style.removeProperty('--dx'); chip.hidden=true;
+  if(moved && d) shiftJob(j.no,d);
+  else if(!moved) editJobModal(j.no);
+});
+$('gantt').addEventListener('click',e=>{
+  const d=e.target.closest('button[data-days]'); if(d){ setDays(d.dataset.days,+d.dataset.v); return; }
+  const s=e.target.closest('button[data-shift]'); if(s) shiftJob(s.dataset.shift,+s.dataset.v);
+});
+
+/* 配置ボード：ドラッグで班を振り替え */
+$('crewrows').addEventListener('dragstart',e=>{
+  const s=e.target.closest('.slot[data-no]'); if(!s) return;
+  e.dataTransfer.setData('text/plain',s.dataset.no); e.dataTransfer.effectAllowed='move'; s.classList.add('ghost');
+});
+$('crewrows').addEventListener('dragend',()=>{
+  document.querySelectorAll('.slot.ghost').forEach(x=>x.classList.remove('ghost'));
+  document.querySelectorAll('tr.drop').forEach(x=>x.classList.remove('drop'));
+});
+$('crewrows').addEventListener('dragover',e=>{
+  const tr=e.target.closest('tr[data-team]'); if(!tr) return;
+  e.preventDefault(); e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('tr.drop').forEach(x=>{ if(x!==tr) x.classList.remove('drop'); });
+  tr.classList.add('drop');
+});
+$('crewrows').addEventListener('drop',e=>{
+  const tr=e.target.closest('tr[data-team]'); if(!tr) return;
+  e.preventDefault(); tr.classList.remove('drop');
+  const no=e.dataTransfer.getData('text/plain'); if(no) setTeam(no,tr.dataset.team);
+});
+$('crewrows').addEventListener('click',e=>{
+  const s=e.target.closest('.slot[data-no]'); if(s) editJobModal(s.dataset.no);
+});
+function editJobModal(no){
+  const j=job(no); if(!j) return;
+  const t=templates[j.tpl];
+  const locked=!['draft','active'].includes(j.status);
+  const a=applDue(j);
+  openModal(`工程・配置の編集 — ${j.name}`,
+    `<dl class="recap">
+       <dt>工事番号</dt><dd class="num">${j.no}</dd>
+       <dt>工事内容</dt><dd>${t.label}</dd>
+       <dt>必要資格</dt><dd>${LICS[t.lic]}</dd>
+       <dt>工　　期</dt><dd class="num">${fmt(j.start)} - ${fmt(endOf(j))}（${j.days}日間）</dd>
+       <dt>担　　当</dt><dd>${j.team}${licOk(j)?'':' <span class="lic">資格不足</span>'}</dd>
+       ${a?`<dt>届出・申請</dt><dd>${a.label}<br><span class="num" style="font-size:11.5px;color:var(--ink-3)">提出目安 ${fmt(a.due)}（着工の${a.lead}日前）</span></dd>`:''}
+       <dt>工程の並び</dt><dd style="font-size:11.5px;line-height:1.65">${j.sch.map(p=>`${p.name}（${fmt(p.start)}〜${fmt(p.end)}）`).join('<br>')}</dd></dl>
+     ${locked?`<div class="alert tip"><b>編集不可</b><span>完了・請求済の工事は工程を動かせません。</span></div>`:`
+     <div class="field"><label>着工日をずらす</label>
+       <div class="btnrow">
+         <button class="btn" data-sh="-7">◀◀ 1週間前</button>
+         <button class="btn" data-sh="-1">◀ 1日前</button>
+         <button class="btn" data-sh="1">1日後 ▶</button>
+         <button class="btn" data-sh="7">1週間後 ▶▶</button>
+       </div></div>
+     <div class="field"><label>工期の長さ</label>
+       <div class="btnrow">
+         <button class="btn" data-dy="-1">− 1日 縮める</button>
+         <button class="btn" data-dy="1">＋ 1日 延ばす</button>
+       </div>
+       <span class="note">変えた日数は工程比率で配分し直され、日曜は自動で飛ばします。</span></div>
+     <div class="field" style="margin-bottom:0"><label>担当班</label>
+       <div class="teamseg">${TEAMS.map(t2=>{
+          const r=teamOf(t2);
+          const ok=r.lic.includes(t.lic);
+          return `<button type="button" data-t="${t2}" aria-pressed="${j.team===t2}">${t2}<br><span style="font-size:10px;color:${ok?'var(--ink-3)':'var(--bad)'}">${ok?'資格OK':'資格不足'}</span></button>`;
+        }).join('')}</div>
+       <span class="note">高所作業車・高圧試験器は工程から自動で付いてきます。</span></div>`}`,
+    `<span class="left">開いたまま何度でも調整できます</span>
+     <button class="btn primary" onclick="closeModal()">完了</button>`);
+  if(locked) return;
+  $('mbody').addEventListener('click',ev=>{
+    const b=ev.target.closest('button'); if(!b) return;
+    if(b.dataset.sh) shiftJob(no,+b.dataset.sh);
+    else if(b.dataset.dy) setDays(no,+b.dataset.dy);
+    else if(b.dataset.t) setTeam(no,b.dataset.t);
+    else return;
+    editJobModal(no);
+  });
+}
+
+/* =========================================================
+   02 工程
+   ========================================================= */
+let gOffset=0;
+const GCOLS=16;
+function ganttBase(){
+  const starts=state.jobs.filter(j=>['draft','active'].includes(j.status)).map(j=>s2d(j.start));
+  return new Date(Math.min(...starts, TODAY.getTime()));
+}
+function ganttWindow(){
+  const from=addDays(ganttBase(), gOffset*7);
+  return Array.from({length:GCOLS},(_,i)=>addDays(from,i));
+}
+function renderGantt(){
+  const days=ganttWindow();
+  const from=days[0], to=days[days.length-1];
+  if(viewMode==='gantt') $('glabel').textContent=`${from.getMonth()+1}/${from.getDate()} - ${to.getMonth()+1}/${to.getDate()}`;
+  const head=`<div class="g-row g-head"><div class="g-name" style="font-size:10px;letter-spacing:.13em;color:var(--ink-3)">現場</div>
+    <div class="g-track" style="--cols:${GCOLS};grid-template-columns:repeat(${GCOLS},1fr);min-height:0">
+    ${days.map(d=>`<div class="g-day ${d.getDay()===6?'sat':''}${d.getDay()===0?'sun':''}"><b>${d.getDate()}</b>${WD[d.getDay()]}</div>`).join('')}</div></div>`;
+
+  const rows=state.jobs.filter(j=>['draft','active'].includes(j.status)).filter(matches).map(j=>{
+    const bars=j.sch.map(p=>{
+      const s=Math.max(0, diffDays(p.start, d2s(from)));
+      const e=Math.min(GCOLS-1, diffDays(p.end, d2s(from)));
+      if(diffDays(p.end,d2s(from))<0 || diffDays(p.start,d2s(to))>0) return '';
+      const late = isLate(j) && diffDays(p.end,d2s(TODAY))<=0 && j.prog<100;
+      return `<div class="g-bar b-${p.cls} ${late?'late':''}" style="grid-column:${s+1} / ${e+2}" title="${p.name}">${p.name}</div>`;
+    }).join('');
+    const ti=diffDays(d2s(TODAY), d2s(from));
+    const todayLine = (ti>=0&&ti<GCOLS) ? `<div class="g-today" style="left:calc(${ti}*100%/${GCOLS} + 100%/${GCOLS}/2)"></div>` : '';
+    return `<div class="g-row"><div class="g-name">${j.name}
+        <span>${j.no} / ${j.team} / ${j.prog}%</span>
+        <div class="g-ctl">
+          <em>日程</em>
+          <button data-shift="${j.no}" data-v="-1" title="着工日を1日前へ">◀</button>
+          <button data-shift="${j.no}" data-v="1" title="着工日を1日後ろへ">▶</button>
+          <em>工期</em>
+          <button data-days="${j.no}" data-v="-1" title="工期を1日縮める">−</button>
+          <span>${j.days}日</span>
+          <button data-days="${j.no}" data-v="1" title="工期を1日延ばす">＋</button>
+        </div></div>
+      <div class="g-track" data-no="${j.no}" title="バーを掴んで左右にドラッグ＝日程を移動／クリック＝編集パネル" style="--cols:${GCOLS};grid-template-columns:repeat(${GCOLS},1fr)">${bars}${todayLine}</div></div>`;
+  }).join('');
+  $('gantt').innerHTML=head+(rows||`<div class="empty">表示できる工程がありません。</div>`);
+  $('glegend').innerHTML=Object.entries(PHASE_NAMES).map(([k,v])=>
+    `<span><i style="background:${PHASE_COLORS[k]}"></i>${v}</span>`).join('')
+    +`<span><i style="background:#C0362B"></i>遅延中</span><span><i style="background:var(--accent)"></i>本日</span>`;
+}
+let viewMode='gantt', mOffset=0;
+$('viewseg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  viewMode=b.dataset.v;
+  [...$('viewseg').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+  syncView();
+});
+function syncView(){
+  $('ganttcard').hidden = viewMode!=='gantt';
+  $('monthcard').hidden = viewMode!=='month';
+  renderGantt(); renderMonth();
+}
+$('gprev').addEventListener('click',()=>{ if(viewMode==='gantt'){gOffset--;renderGantt();} else {mOffset--;renderMonth();} });
+$('gnext').addEventListener('click',()=>{ if(viewMode==='gantt'){gOffset++;renderGantt();} else {mOffset++;renderMonth();} });
+
+function jobsOn(ds){
+  return state.jobs.filter(j=>diffDays(ds,j.start)>=0 && diffDays(endOf(j),ds)>=0 && s2d(ds).getDay()!==0);
+}
+function phaseOn(j,ds){ return j.sch.find(p=>diffDays(ds,p.start)>=0 && diffDays(p.end,ds)>=0); }
+function renderMonth(){
+  const base=new Date(TODAY.getFullYear(),TODAY.getMonth()+mOffset,1);
+  const y=base.getFullYear(), m=base.getMonth();
+  const last=new Date(y,m+1,0).getDate(), pad=new Date(y,m,1).getDay();
+  const cells=[];
+  for(let i=0;i<pad;i++) cells.push(null);
+  for(let d=1;d<=last;d++) cells.push(new Date(y,m,d));
+  while(cells.length%7) cells.push(null);
+  $('cal').innerHTML =
+    [...WD].map((w,i)=>`<div class="cw ${i===0?'sun':''}${i===6?'sat':''}">${w}</div>`).join('') +
+    cells.map(d=>{
+      if(!d) return `<div class="cell out"></div>`;
+      const ds=d2s(d);
+      const list=jobsOn(ds).filter(matches);
+      const chips=list.slice(0,3).map(j=>{
+        const p=phaseOn(j,ds);
+        return `<div class="chip" data-open="${j.no}" style="background:${PHASE_COLORS[p?p.cls:4]}"
+          title="${j.name}／${p?p.name:''}／${j.team}">${p?p.name:''}・${shortName(j.name)}</div>`;
+      }).join('');
+      const more=list.length>3?`<div class="chip more">＋${list.length-3}件</div>`:'';
+      return `<div class="cell ${d.getDay()===0?'sun':''}${d.getDay()===6?'sat':''} ${ds===d2s(TODAY)?'today':''}"
+        data-d="${ds}" title="ダブルクリックでこの日を含む工程表へ">
+        <span class="dnum">${d.getDate()}</span>${chips}${more}</div>`;
+    }).join('');
+  if(viewMode==='month') $('glabel').textContent=`${y}年${m+1}月`;
+}
+$('cal').addEventListener('click',e=>{ const c=e.target.closest('.chip[data-open]'); if(c) editJobModal(c.dataset.open); });
+function showGanttAt(ds){
+  viewMode='gantt';
+  [...$('viewseg').children].forEach(x=>x.setAttribute('aria-pressed', x.dataset.v==='gantt'));
+  const want=d2s(addDays(s2d(ds),-2));
+  gOffset=Math.round(diffDays(want, d2s(ganttBase()))/7);
+  syncView();
+  $('ganttcard').scrollIntoView({behavior:'smooth',block:'start'});
+  toast(`${fmt(ds)} を含む期間の工程表に切り替えました。`);
+}
+$('cal').addEventListener('dblclick',e=>{
+  const cell=e.target.closest('.cell[data-d]'); if(!cell) return;
+  closeModal(); showGanttAt(cell.dataset.d);
+});
+$('tplrows').innerHTML=Object.values(templates).map(t=>`
+  <tr><td><b>${t.label}</b><span class="sub">${t.note}</span></td>
+  <td class="code">${t.phases.map(p=>p[0]).join(' → ')}</td>
+  <td><span class="lic">${LICS[t.lic]}</span></td>
+  <td class="sub">${t.appl?`${t.appl.label}<br>着工 ${t.appl.lead}日前`:'—'}</td>
+  <td class="r num">${t.rate} ${t.qtyUnit}/日</td></tr>`).join('');
+
+/* =========================================================
+   03 人員・資格配置
+   ========================================================= */
+let wOffset=0;
+function weekDays(){
+  const base=addDays(TODAY, wOffset*7);
+  const mon=addDays(base, (base.getDay()===0?-6:1-base.getDay()));
+  return Array.from({length:6},(_,i)=>addDays(mon,i));
+}
+function activeOn(dateStr){
+  return state.jobs.filter(j=>(j.status==='active'||j.status==='draft')
+    && diffDays(dateStr,j.start)>=0 && diffDays(endOf(j),dateStr)>=0
+    && s2d(dateStr).getDay()!==0);
+}
+function resourcesFor(j,ds){
+  const out=[j.team||kinds[j.kind].team];
+  const p=ds?phaseOn(j,ds):null;
+  const t=templates[j.tpl];
+  if(p&&(p.cls===2||p.cls===3)&&['led','camera','interphone','solar','aircon','cubicle'].includes(j.tpl)) out.push('高所作業車 12m');
+  if(p&&p.cls===4&&['solar','aircon','cubicle'].includes(j.tpl)) out.push('高所作業車 12m');
+  if(p&&p.cls===5&&t.lic==='first') out.push('高圧試験器一式');
+  return [...new Set(out)];
+}
+function conflicts(){
+  const out=[], seen={};
+  const span=[]; for(let i=-21;i<45;i++) span.push(d2s(addDays(TODAY,i)));
+  span.forEach(ds=>{
+    const map={};
+    activeOn(ds).forEach(j=>resourcesFor(j,ds).forEach(r=>{(map[r]=map[r]||[]).push(j.no)}));
+    Object.entries(map).forEach(([r,list])=>{
+      if(list.length>1 && !seen[r+ds]){ seen[r+ds]=1; out.push({date:ds,res:r,jobs:list}); }
+    });
+  });
+  return out.slice(0,4);
+}
+function renderCrew(){
+  const days=weekDays();
+  $('wlabel').textContent=`${days[0].getMonth()+1}/${days[0].getDate()} - ${days[5].getMonth()+1}/${days[5].getDate()}`;
+  const confs=conflicts();
+  const licNg=state.jobs.filter(j=>['draft','active'].includes(j.status)&&!licOk(j));
+  const boxes=[];
+  licNg.forEach(j=>boxes.push(`<div class="alert volt" style="margin-bottom:9px"><b>資格不足</b><span>${j.no} ${j.name}：<b class="num">${LICS[templates[j.tpl].lic]}</b> が必要です。現在の担当 ${j.team} では着手できません。該当資格を持つ班（${RESOURCES.filter(r=>r.lic.includes(templates[j.tpl].lic)).map(r=>r.id).join('・')||'該当なし'}）へ振り替えてください。</span></div>`));
+  confs.forEach(c=>boxes.push(`<div class="alert" style="margin-bottom:9px"><b>重複検出</b><span>${fmt(c.date)}（${WD[s2d(c.date).getDay()]}）<b class="num">${c.res}</b> が ${c.jobs.join(' / ')} に二重割当。着手日をずらすか、別の資源へ振り替える必要があります。</span></div>`));
+  $('confbox').innerHTML = boxes.length ? boxes.join('')
+    : `<div class="alert good"><b>重複・資格不足なし</b><span>この期間、班・車両・機材の二重割当も、資格を満たさない配置も発生していません。</span></div>`;
+
+  $('crewrows').innerHTML=RESOURCES.map(r=>{
+    const isTeam=r.lic.length>0;
+    const cells=days.map(d=>{
+      const ds=d2s(d);
+      const list=activeOn(ds).filter(j=>resourcesFor(j,ds).includes(r.id));
+      if(!list.length) return `<td><div class="slot s-off"><b>${d.getDay()===0?'休み':'空き'}</b><span>${d.getDay()===0?'日曜':'—'}</span></div></td>`;
+      const conf=list.length>1;
+      return `<td>${list.map(j=>{
+        const ng=isTeam && j.team===r.id && !licOk(j);
+        const cls=conf?'s-conf':(ng?'s-nolic':'s-'+j.kind);
+        return `<div class="slot ${cls}"
+          ${isTeam?`draggable="true" data-no="${j.no}" title="ドラッグで別の班へ／クリックで変更"`:''}>
+          <b>${conf?'⚠ 二重割当 ':''}${ng?'⚡ 資格不足 ':''}${shortName(j.name)}</b><span>${j.no} / ${j.prog}%</span></div>`;
+      }).join('')}</td>`;
+    }).join('');
+    return `<tr ${isTeam?`data-team="${r.id}"`:''}><td class="rowlabel"><b>${r.id}</b><span>${r.sub}</span></td>${cells}</tr>`;
+  }).join('');
+
+  $('utilrows').innerHTML=RESOURCES.map(r=>{
+    let n=0; const names=new Set();
+    days.forEach(d=>{ const l=activeOn(d2s(d)).filter(j=>resourcesFor(j,d2s(d)).includes(r.id));
+      if(l.length){ n++; l.forEach(j=>names.add(shortName(j.name))); } });
+    const pct=Math.round(n/6*100);
+    return `<tr><td>${r.id}<span class="sub">${r.sub}</span></td>
+      <td>${r.lic.length?r.lic.map(l=>`<span class="lic">${LICS[l]}</span>`).join(' '):'<span class="sub">—</span>'}</td>
+      <td class="num">${n}.0</td>
+      <td><div class="bar ${pct>=100?'late':''}"><i style="width:${pct}%"></i></div></td>
+      <td class="sub">${names.size?[...names].join('／'):'—（翌週の着手候補・年次点検に回せます）'}</td></tr>`;
+  }).join('');
+}
+$('wprev').addEventListener('click',()=>{wOffset--;renderCrew();});
+$('wnext').addEventListener('click',()=>{wOffset++;renderCrew();});
+
+/* ---- スワイプで期間送り ---- */
+function wireSwipe(el,prev,next){
+  if(!el) return;
+  let sx=null,sy=0;
+  const skip=t=>t&&t.closest&&t.closest('.g-bar,button,select,input,.chip,.slot');
+  const start=(x,y)=>{sx=x;sy=y;};
+  const end=(x,y)=>{
+    if(sx===null) return;
+    const dx=x-sx, dy=y-sy; sx=null;
+    if(Math.abs(dx)<60 || Math.abs(dy)>Math.abs(dx)) return;
+    const atR=el.scrollLeft+el.clientWidth>=el.scrollWidth-4, atL=el.scrollLeft<=4;
+    if(dx<0&&atR) next();
+    else if(dx>0&&atL) prev();
+  };
+  el.addEventListener('touchstart',e=>{ if(skip(e.target)) return; start(e.touches[0].clientX,e.touches[0].clientY); },{passive:true});
+  el.addEventListener('touchend',e=>end(e.changedTouches[0].clientX,e.changedTouches[0].clientY),{passive:true});
+  el.addEventListener('pointerdown',e=>{ if(e.pointerType==='touch'||skip(e.target)) return; start(e.clientX,e.clientY); });
+  el.addEventListener('pointerup',e=>{ if(e.pointerType==='touch') return; end(e.clientX,e.clientY); });
+}
+wireSwipe(document.querySelector('.gantt'), ()=>{gOffset--;renderGantt();}, ()=>{gOffset++;renderGantt();});
+wireSwipe($('cal'),                          ()=>{mOffset--;renderMonth();}, ()=>{mOffset++;renderMonth();});
+wireSwipe(document.querySelector('.crew'),   ()=>{wOffset--;renderCrew();},  ()=>{wOffset++;renderCrew();});
+
+/* =========================================================
+   04 見積
+   ========================================================= */
+let kind='kojin', daysTouched=false, current=null;
+$('tpl').innerHTML=Object.entries(templates).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+$('tpl').value='led';
+$('kindseg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  kind=b.dataset.kind;
+  [...$('kindseg').children].forEach(x=>x.setAttribute('aria-pressed', x===b));
+  calc(); renderTanka();
+});
+['tpl','qty','len','night','holiday','high','waste'].forEach(id=>$(id).addEventListener('input',()=>{
+  if(id==='qty') $('qtyrange').value=Math.min(+$('qtyrange').max,$('qty').value||0);
+  if(id==='tpl'){ daysTouched=false; syncQtyLabel(); }
+  calc(); renderTanka();
+}));
+$('days').addEventListener('input',()=>{ daysTouched=true; calc(); renderTanka(); });
+$('qtyrange').addEventListener('input',()=>{ $('qty').value=$('qtyrange').value; calc(); renderTanka(); });
+
+function syncQtyLabel(){
+  const t=templates[$('tpl').value];
+  $('qtylabel').textContent=t.qtyLabel;
+  $('qtyunit').textContent=t.qtyUnit;
+  const max = t.qtyUnit==='kVA' ? 1000 : (t.qtyUnit==='kW' ? 100 : 400);
+  $('qtyrange').max=max; $('qty').max=max*5;
+  const step = t.qtyUnit==='kW' ? 0.2 : (t.qtyUnit==='kVA' ? 10 : 1);
+  $('qtyrange').step=step; $('qty').step=step;
+  if(+$('qty').value>max*5) $('qty').value=max;
+  $('qtyrange').value=Math.min(max,+$('qty').value||1);
+}
+function syncForm(){
+  kind='kojin';
+  [...$('kindseg').children].forEach(x=>x.setAttribute('aria-pressed', x.dataset.kind==='kojin'));
+  $('tpl').value='led'; $('qty').value=12; $('len').value=90; daysTouched=false;
+  $('night').checked=false; $('holiday').checked=false; $('high').checked=true; $('waste').checked=true;
+  syncQtyLabel();
+}
+
+function calc(){
+  const tplKey=$('tpl').value, t=templates[tplKey], k=kinds[kind];
+  const qty=Math.max(0,+$('qty').value||0), len=Math.max(0,+$('len').value||0);
+  if(!daysTouched) $('days').value=autoDays(tplKey,qty);
+  const days=Math.max(1,+$('days').value||1);
+  const opt={night:$('night').checked,holiday:$('holiday').checked,high:$('high').checked,waste:$('waste').checked};
+  const e=estimate(tplKey,kind,qty,len,days,opt);
+  current={tplKey,kind,qty,len,days,opt,est:e};
+
+  $('tplnote').textContent=t.note;
+  $('kindnote').textContent=k.note;
+  $('esttitle').textContent=`${t.label} ／ ${k.label} ／ ${qty.toLocaleString()}${t.qtyUnit}`;
+  const src={qty:t.qtyLabel,len:'配線延長',days:'工期',set:'一式'};
+  $('estrows').innerHTML=e.rows.map(r=>`<tr>
+      <td>${r.n}<span class="qty-src">${src[r.src]}から自動算出</span></td>
+      <td class="r num">${r.q.toLocaleString('ja-JP',{maximumFractionDigits:1})}</td><td>${r.u}</td>
+      <td class="r num">${r.mu?yen(r.mu):'—'}</td>
+      <td class="r num">${r.lu?yen(r.lu):'—'}</td>
+      <td class="r num">${yen(r.amt)}</td></tr>`).join('')
+    +`<tr class="summary-row"><td colspan="5">直接工事費　<span class="qty-src">材料 ${yen(e.matTotal)} ／ 施工 ${yen(e.labTotal)}</span></td><td class="r num">${yen(e.direct)}</td></tr>
+      ${e.trip?`<tr><td colspan="5">出張・基本料　<span class="qty-src">${k.label}</span></td><td class="r num">${yen(e.trip)}</td></tr>`:''}
+      <tr><td colspan="5">法定福利費　<span class="qty-src">施工費の ${(FUKURI_RATE*100).toFixed(1)}%（内訳明示）</span></td><td class="r num">${yen(e.fukuri)}</td></tr>
+      <tr><td colspan="5">現場管理費　<span class="qty-src">${(k.genba*100).toFixed(0)}%（${k.label}）</span></td><td class="r num">${yen(e.genba)}</td></tr>
+      <tr><td colspan="5">一般管理費　<span class="qty-src">${(k.ippan*100).toFixed(0)}%（${k.label}）</span></td><td class="r num">${yen(e.ippan)}</td></tr>
+      ${e.disc?`<tr><td colspan="5">出精値引　<span class="qty-src">▲${(k.disc*100).toFixed(0)}%（${k.label}）</span></td><td class="r num">▲${yen(e.disc)}</td></tr>`:''}`;
+  const gpCls = e.gp<0.12 ? 'style="color:var(--bad)"' : '';
+  $('esttotals').innerHTML=`
+    <div><dt>工事価格（税抜）</dt><dd class="num">${yen(e.net)}</dd></div>
+    <div><dt>消費税 10%</dt><dd class="num">${yen(e.tax)}</dd></div>
+    <div class="big"><dt>見積金額（税込）</dt><dd class="num">${yen(e.total)}</dd></div>
+    <div><dt>原価（単価表の原価欄）</dt><dd class="num">${yen(e.cost)}</dd></div>
+    <div class="gp"><dt>粗利率</dt><dd class="num" ${gpCls}>${(e.gp*100).toFixed(1)}%</dd></div>
+    <div><dt>${t.qtyLabel}あたり（税抜）</dt><dd class="num">${qty?yen(e.net/qty):'—'}</dd></div>`;
+}
+
+/* ---- 受注登録 ---- */
+$('orderbtn').addEventListener('click',()=>{
+  const t=templates[current.tplKey], k=kinds[current.kind];
+  const nextStart=d2s(addDays(TODAY,4));
+  const okTeams=RESOURCES.filter(r=>r.lic.includes(t.lic)).map(r=>r.id);
+  const autoTeam = okTeams.includes(k.team) ? k.team : (okTeams[0]||k.team);
+  openModal('受注登録',
+    `<dl class="recap">
+       <dt>工事内容</dt><dd>${t.label}</dd>
+       <dt>得意先区分</dt><dd>${k.label}</dd>
+       <dt>数量</dt><dd class="num">${current.qty.toLocaleString()}${t.qtyUnit}${current.len?` ／ 配線 ${current.len.toLocaleString()}m`:''}</dd>
+       <dt>工期</dt><dd class="num">${current.days} 日（工程テンプレで自動配分）</dd>
+       <dt>請負金額</dt><dd class="num"><b>${yen(current.est.total)} 円</b>（税込・粗利 ${(current.est.gp*100).toFixed(1)}%）</dd>
+       <dt>必要資格</dt><dd>${LICS[t.lic]}</dd>
+       <dt>担当班</dt><dd>${autoTeam}<span class="sub">資格を満たす班から自動割当${autoTeam!==k.team?`（区分の標準 ${k.team} は資格不足のため変更）`:''}</span></dd>
+       ${t.appl?`<dt>届出・申請</dt><dd>${t.appl.label}<span class="sub">着工の${t.appl.lead}日前が提出目安。登録と同時にアラート対象になります。</span></dd>`:''}
+       <dt>支払サイト</dt><dd class="num">${k.site}日（${k.label}）</dd></dl>
+     <div class="field"><label for="ocli">得意先名</label><input type="text" id="ocli" placeholder="例：糟屋精機 株式会社 ／ 原田 様"></div>
+     <div class="field"><label for="oname">工事名称・現場</label><input type="text" id="oname" placeholder="例：宇美町 第2工場 LED照明改修"></div>
+     <div class="field" style="margin-bottom:0"><label for="ostart">着工予定日</label><input type="date" id="ostart" value="${nextStart}">
+       <span class="note">この日から日曜を除いて工程を割り付けます。</span></div>`,
+    `<span class="left">承認＝台帳登録。再入力はありません</span>
+     <button class="btn" onclick="closeModal()">やめる</button>
+     <button class="btn primary" id="osave">受注を確定する</button>`);
+  $('oname').focus();
+  $('osave').addEventListener('click',()=>{
+    const client=$('ocli').value.trim()||'（得意先未入力）';
+    const name=$('oname').value.trim()||`${k.short} ${t.label}`;
+    const start=$('ostart').value||nextStart;
+    seq.job++;
+    const d=s2d(start);
+    const no=`E-${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}-${String(seq.job).padStart(2,'0')}`;
+    state.jobs.unshift({no,name,client,kind:current.kind,tpl:current.tplKey,
+      qty:current.qty,len:current.len,start,days:current.days,prog:0,status:'draft',delay:0,
+      team:autoTeam, sch:buildSchedule(current.tplKey,start,current.days), est:current.est, inv:null, fresh:1});
+    closeModal(); renderAll(); go('dash');
+    toast(`${no} を登録しました。工程・配置・申請期限を自動生成しています。`);
+  });
+});
+
+/* =========================================================
+   05 単価表（区分別・編集可能）
+   ========================================================= */
+let pbMode='m';
+$('pbtpl').innerHTML=Object.entries(templates).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+$('pbtpl').value='led';
+$('pbtpl').addEventListener('change',renderTanka);
+$('pbmode').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  pbMode=b.dataset.m;
+  [...$('pbmode').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+  renderTanka();
+});
+const MODE_NOTE={
+  m:'材料費の単価を区分ごとに編集します。仕入値に対する掛率の差がそのまま粗利に出ます。',
+  l:'施工費（手間）の単価を区分ごとに編集します。夜間・休日割増はこの値に掛かります。',
+  t:'材料＋施工の合計（材工共）です。この表示では編集できません。括弧内は原価に対する粗利率。',
+};
+function renderTanka(){
+  const tk=$('pbtpl').value, t=templates[tk], pb=PB[tk];
+  $('pbmodenote').textContent=MODE_NOTE[pbMode];
+  $('pbrows').innerHTML=t.items.map((it,i)=>{
+    const cells=KIND_KEYS.map(kk=>{
+      const p=pb[i][kk];
+      if(pbMode==='t'){
+        const tot=p.m+p.l;
+        const gp=tot? (tot-it.c)/tot : 0;
+        const cls=gp<0.10?'thin':(gp>0.30?'fat':'');
+        return `<td class="r pbcell"><b class="num">${yen(tot)}</b><span class="gpbadge ${cls}">粗利 ${(gp*100).toFixed(0)}%</span></td>`;
+      }
+      const v = pbMode==='m' ? p.m : p.l;
+      return `<td class="pbcell"><input class="pb-in num ${v?'':'zero'}" type="number" min="0" step="10"
+        value="${v}" data-i="${i}" data-k="${kk}" aria-label="${it.n} ${kinds[kk].short} ${pbMode==='m'?'材料':'施工'}単価"></td>`;
+    }).join('');
+    const flags=[];
+    if(it.waste) flags.push('撤去処分');
+    if(it.high)  flags.push('高所');
+    return `<tr><td>${it.n}${flags.length?`<span class="sub">${flags.join('・')}条件でのみ計上</span>`:''}</td>
+      <td>${it.u}</td><td class="r num" style="color:var(--ink-3)">${yen(it.c)}</td>${cells}</tr>`;
+  }).join('');
+
+  $('pbbulk').innerHTML=KIND_KEYS.map(kk=>`
+    <div class="bulkcard"><b><span class="kind k-${kk}">${kinds[kk].short}</span> ${kinds[kk].label}</b>
+      <div class="btnrow">
+        <button class="btn" data-bulk="${kk}" data-v="-5">− 5%</button>
+        <button class="btn" data-bulk="${kk}" data-v="-1">− 1%</button>
+        <button class="btn" data-bulk="${kk}" data-v="1">＋ 1%</button>
+        <button class="btn" data-bulk="${kk}" data-v="5">＋ 5%</button>
+        <button class="btn" data-recost="${kk}" title="原価に掛率を掛けて再計算">原価×掛率</button>
+      </div></div>`).join('');
+
+  renderSettings(); renderCompare();
+}
+$('pbrows').addEventListener('change',e=>{
+  const inp=e.target.closest('.pb-in'); if(!inp) return;
+  const tk=$('pbtpl').value, i=+inp.dataset.i, kk=inp.dataset.k;
+  const v=Math.max(0, Math.round(+inp.value||0));
+  if(pbMode==='m') PB[tk][i][kk].m=v; else PB[tk][i][kk].l=v;
+  calc(); renderTanka();
+  toast(`${templates[tk].items[i].n}（${kinds[kk].short}）の${pbMode==='m'?'材料':'施工'}単価を ${yen(v)} 円にしました。`);
+});
+$('pbbulk').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-bulk]');
+  if(b){
+    const tk=$('pbtpl').value, kk=b.dataset.bulk, r=1+(+b.dataset.v)/100;
+    PB[tk].forEach(row=>{ row[kk].m=Math.round(row[kk].m*r); row[kk].l=Math.round(row[kk].l*r); });
+    calc(); renderTanka();
+    toast(`${kinds[kk].label}の${templates[tk].label}単価を一括 ${+b.dataset.v>0?'＋':''}${b.dataset.v}% しました。`);
+    return;
+  }
+  const c=e.target.closest('button[data-recost]');
+  if(c){
+    const kk=c.dataset.recost;
+    openModal(`原価×掛率で再計算 — ${kinds[kk].label}`,
+      `<p style="margin:0 0 14px;font-size:12.5px;color:var(--ink-3)">${templates[$('pbtpl').value].label} の全項目を、原価に掛率を掛けた金額で置き換えます。材料と施工の比率は現在の比率を保ちます。</p>
+       <div class="field" style="margin-bottom:0"><label for="rcr">掛率</label>
+         <div class="inline"><input type="number" id="rcr" value="${(1/(1-0.25)).toFixed(2)}" min="1" max="4" step="0.01"><span class="unit">倍</span></div>
+         <span class="note" id="rcnote"></span></div>`,
+      `<button class="btn" onclick="closeModal()">やめる</button>
+       <button class="btn primary" id="rcgo">この掛率で置き換える</button>`);
+    const note=()=>{ const r=+$('rcr').value||1; $('rcnote').textContent=`粗利率は約 ${(((r-1)/r)*100).toFixed(1)}% になります。`; };
+    note(); $('rcr').addEventListener('input',note);
+    $('rcgo').addEventListener('click',()=>{
+      const tk=$('pbtpl').value, r=Math.max(1,+$('rcr').value||1);
+      templates[tk].items.forEach((it,i)=>{
+        const row=PB[tk][i], cur=row[kk].m+row[kk].l;
+        const target=Math.round(it.c*r);
+        const ratio = cur? row[kk].m/cur : (it.mat/(it.mat+it.lab||1));
+        row[kk].m=Math.round(target*ratio);
+        row[kk].l=target-row[kk].m;
+      });
+      closeModal(); calc(); renderTanka();
+      toast(`${kinds[kk].label}の単価を 原価×${r.toFixed(2)}（粗利 ${(((r-1)/r)*100).toFixed(1)}%）で置き換えました。`);
+    });
+  }
+});
+$('pbreset').addEventListener('click',()=>{
+  const jobsBefore=state.jobs.length;
+  seedPriceBook(); calc(); renderTanka(); renderDash();
+  toast(`単価表と区分設定を初期値に戻しました。登録済みの${jobsBefore}件の工事金額は受注時点の内訳を保持します。`);
+});
+
+function renderSettings(){
+  $('setrows').innerHTML=KIND_KEYS.map(kk=>{
+    const k=kinds[kk];
+    return `<tr>
+      <td><span class="kind k-${kk}">${k.short}</span> ${k.label}<span class="sub">${k.note}</span></td>
+      <td class="r"><input type="number" data-set="trip"  data-k="${kk}" value="${k.trip}" min="0" step="500" aria-label="${k.short} 出張・基本料"></td>
+      <td class="r"><input type="number" data-set="genba" data-k="${kk}" value="${(k.genba*100).toFixed(0)}" min="0" max="40" step="1" aria-label="${k.short} 現場管理費率"></td>
+      <td class="r"><input type="number" data-set="ippan" data-k="${kk}" value="${(k.ippan*100).toFixed(0)}" min="0" max="40" step="1" aria-label="${k.short} 一般管理費率"></td>
+      <td class="r"><input type="number" data-set="disc"  data-k="${kk}" value="${(k.disc*100).toFixed(0)}" min="0" max="20" step="1" aria-label="${k.short} 出精値引率"></td>
+      <td class="r"><input type="number" data-set="site"  data-k="${kk}" value="${k.site}" min="0" max="180" step="5" aria-label="${k.short} 支払サイト"></td>
+      <td><select data-set="team" data-k="${kk}" aria-label="${k.short} 標準担当班">${TEAMS.map(t=>`<option ${k.team===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    </tr>`;
+  }).join('');
+}
+$('setrows').addEventListener('change',e=>{
+  const el=e.target.closest('[data-set]'); if(!el) return;
+  const kk=el.dataset.k, f=el.dataset.set, k=kinds[kk];
+  if(f==='team') k.team=el.value;
+  else if(f==='trip'||f==='site') k[f]=Math.max(0,Math.round(+el.value||0));
+  else k[f]=Math.max(0,(+el.value||0))/100;
+  calc(); renderTanka(); renderDash();
+  toast(`${k.label}の設定を更新しました。`);
+});
+
+function renderCompare(){
+  if(!current){ $('cmprows').innerHTML=''; return; }
+  const t=templates[current.tplKey];
+  const res=KIND_KEYS.map(kk=>({kk, e:estimate(current.tplKey,kk,current.qty,current.len,current.days,current.opt)}));
+  const best=res.reduce((a,b)=>b.e.gp>a.e.gp?b:a);
+  const hi=res.reduce((a,b)=>b.e.total>a.e.total?b:a), lo=res.reduce((a,b)=>b.e.total<a.e.total?b:a);
+  $('cmprows').innerHTML=res.map(({kk,e})=>{
+    const k=kinds[kk];
+    const win = kk===best.kk;
+    return `<tr>
+      <td class="${win?'win':''}"><span class="kind k-${kk}">${k.short}</span> ${k.label}${kk===current.kind?'<span class="sub">いま見積積算で選択中</span>':''}</td>
+      <td class="r num">${yen(e.matTotal)}</td>
+      <td class="r num">${yen(e.labTotal)}</td>
+      <td class="r num">${yen(e.keihi)}</td>
+      <td class="r num"><b>${yen(e.total)}</b></td>
+      <td class="r num" style="color:var(--ink-3)">${yen(e.cost)}</td>
+      <td class="r num ${win?'win':''}" style="color:${e.gp<0.12?'var(--bad)':'var(--ok)'}"><b>${(e.gp*100).toFixed(1)}%</b></td>
+      <td class="num">${k.site}日</td></tr>`;
+  }).join('');
+  const diff=hi.e.total-lo.e.total;
+  $('cmpnote').innerHTML=`${t.label}・${current.qty.toLocaleString()}${t.qtyUnit} の同条件で、<b>${kinds[hi.kk].short}</b> と <b>${kinds[lo.kk].short}</b> の差は <b class="num">${yen(diff)} 円</b>（税込）。粗利率がいちばん残るのは <b>${kinds[best.kk].short}</b> の ${(best.e.gp*100).toFixed(1)}% です。単価表を1本で運用していると、この差がそのまま取りこぼしか赤字になります。`;
+}
+
+/* =========================================================
+   06 請求・PDF
+   ========================================================= */
+function renderBill(){
+  const rows=state.jobs.filter(j=>['done','billed','paid'].includes(j.status)).filter(matches)
+    .sort((a,b)=>(a.doneAt||'').localeCompare(b.doneAt||''));
+  $('billrows').innerHTML = rows.length ? rows.map(j=>{
+    const st=STATUS[j.status];
+    const wait=j.status==='done'?diffDays(d2s(TODAY), j.doneAt||endOf(j)):null;
+    const over=j.status==='billed' && diffDays(d2s(TODAY), j.inv.due)>0;
+    const cls=j.status==='done'?'p-bad':(over?'p-bad':st[0]);
+    const label=j.status==='done'?'請求漏れ':(over?'入金遅延':st[1]);
+    const dates=j.inv?`${fmt(j.inv.issued)} 発行 / ${fmt(j.inv.due)}`:`${fmt(j.doneAt||endOf(j))} 完了 / 未設定`;
+    let act='';
+    if(j.status==='done') act=`<button class="btn sm primary" data-bill="${j.no}">請求書発行</button>`;
+    else if(j.status==='billed') act=`<button class="btn sm" data-view="${j.no}">請求書</button> <button class="btn sm" data-paid="${j.no}">入金記録</button>`;
+    else act=`<button class="btn sm" data-view="${j.no}">請求書</button>`;
+    return `<tr><td><b>${j.no}</b><span class="sub">${j.name}<br>${j.client}</span></td>
+      <td><span class="kind k-${j.kind}">${kinds[j.kind].short}</span></td>
+      <td class="r num">${yen(j.inv?j.inv.total:j.est.total)}</td>
+      <td class="num" style="font-size:12px">${dates}</td>
+      <td><span class="pill ${cls}">${label}</span></td>
+      <td class="r num">${wait!==null?wait+'日':'—'}</td>
+      <td class="r" style="white-space:nowrap">${act}</td></tr>`;
+  }).join('') : `<tr><td colspan="7"><div class="empty">完了した工事がまだありません。ダッシュボードで出来高を100%にすると、ここに請求待ちとして並びます。</div></td></tr>`;
+
+  const unb=state.jobs.filter(j=>j.status==='done').reduce((s,j)=>s+j.est.total,0);
+  const bil=state.jobs.filter(j=>j.status==='billed').reduce((s,j)=>s+j.inv.total,0);
+  const paidJobs=state.jobs.filter(j=>j.status==='paid'&&j.inv);
+  const avg=paidJobs.length?Math.round(paidJobs.reduce((s,j)=>s+diffDays(j.inv.paidAt,j.doneAt||j.inv.issued),0)/paidJobs.length):0;
+  $('billtotals').innerHTML=`
+    <div><dt>未請求</dt><dd class="num">${yen(unb)}</dd></div>
+    <div><dt>請求済・未入金</dt><dd class="num">${yen(bil)}</dd></div>
+    <div><dt>入金済（累計）</dt><dd class="num">${yen(paidJobs.reduce((s,j)=>s+j.inv.total,0))}</dd></div>
+    <div class="big"><dt>完了から入金までの平均</dt><dd class="num">${avg}日</dd></div>`;
+  const n=state.jobs.filter(j=>j.status==='done').length;
+  $('nbadge').hidden=!n; $('nbadge').textContent=n;
+}
+$('billrows').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.bill) issueInvoice(b.dataset.bill);
+  if(b.dataset.view) showInvoice(job(b.dataset.view));
+  if(b.dataset.paid) markPaid(b.dataset.paid);
+});
+
+function issueInvoice(no){
+  const j=job(no);
+  seq.inv++;
+  const issued=d2s(TODAY);
+  const due=d2s(addDays(TODAY, kinds[j.kind].site));
+  j.inv={no:`I-${String(TODAY.getFullYear()).slice(2)}${String(TODAY.getMonth()+1).padStart(2,'0')}-${String(seq.inv+17).padStart(3,'0')}`,
+         issued, due, total:j.est.total, paidAt:null};
+  j.status='billed';
+  renderAll();
+  toast(`${j.inv.no} を発行しました。支払期限 ${fmt(due)}（${kinds[j.kind].label}：${kinds[j.kind].site}日サイト）`);
+  showInvoice(j);
+}
+
+function invoiceHTML(j){
+  const e=j.est, t=templates[j.tpl], k=kinds[j.kind];
+  const rows=e.rows.map(r=>`<tr><td>${r.n}</td><td class="r">${r.q.toLocaleString('ja-JP',{maximumFractionDigits:1})}</td>
+    <td>${r.u}</td><td class="r">${r.mu?yen(r.mu):'—'}</td><td class="r">${r.lu?yen(r.lu):'—'}</td><td class="r">${yen(r.amt)}</td></tr>`).join('');
+  return `<div class="stamp">DEMO 見本</div>
+  <h1>請 求 書</h1>
+  <div class="meta">
+    <div class="to">
+      <div class="name">${j.client} 御中</div>
+      <p>下記のとおりご請求申し上げます。</p>
+    </div>
+    <div class="from">
+      <div class="no">請求番号 ${j.inv.no}<br>発行日 ${fmtJ(j.inv.issued)}</div>
+      <b>${ISSUER.name}</b>
+      ${ISSUER.addr}<br>TEL ${ISSUER.tel}<br>登録番号 ${ISSUER.reg}<br>${ISSUER.lic}
+    </div>
+  </div>
+  <div class="grand"><span>ご請求金額（税込）</span><b>¥ ${yen(e.total)} −</b></div>
+  <dl class="subject">
+    <dt>工事番号</dt><dd>${j.no}</dd>
+    <dt>工 事 名</dt><dd>${j.name}</dd>
+    <dt>工事内容</dt><dd>${t.label}（${k.label}）</dd>
+    <dt>数　　量</dt><dd>${j.qty.toLocaleString()}${t.qtyUnit}${j.len?`　配線延長 ${j.len.toLocaleString()}m`:''}</dd>
+    <dt>工　　期</dt><dd>${fmtJ(j.start)} 〜 ${fmtJ(j.doneAt||endOf(j))}（完了）</dd>
+    <dt>支払期限</dt><dd>${fmtJ(j.inv.due)}（${k.site}日サイト）</dd>
+  </dl>
+  <table>
+    <thead><tr><th>名称</th><th class="r">数量</th><th>単位</th><th class="r">材料単価</th><th class="r">施工単価</th><th class="r">金額</th></tr></thead>
+    <tbody>${rows}
+      <tr class="sum"><td colspan="5">直接工事費</td><td class="r">${yen(e.direct)}</td></tr>
+      ${e.trip?`<tr><td colspan="5">出張・基本料</td><td class="r">${yen(e.trip)}</td></tr>`:''}
+      <tr><td colspan="5">法定福利費（施工費の${(FUKURI_RATE*100).toFixed(1)}%）</td><td class="r">${yen(e.fukuri)}</td></tr>
+      <tr><td colspan="5">現場管理費</td><td class="r">${yen(e.genba)}</td></tr>
+      <tr><td colspan="5">一般管理費</td><td class="r">${yen(e.ippan)}</td></tr>
+      ${e.disc?`<tr><td colspan="5">出精値引</td><td class="r">▲${yen(e.disc)}</td></tr>`:''}
+      <tr class="sum"><td colspan="5">小計（税抜）</td><td class="r">${yen(e.net)}</td></tr>
+      <tr class="sum"><td colspan="5">消費税（10%）</td><td class="r">${yen(e.tax)}</td></tr>
+      <tr class="tot"><td colspan="5">合計（税込）</td><td class="r">${yen(e.total)}</td></tr></tbody>
+  </table>
+  <div class="bank"><b>お振込先：</b>${ISSUER.bank}<br>恐れ入りますが振込手数料は御社にてご負担願います。</div>
+  <div class="tail">
+    本書は「電設ボード」から工事台帳の内容をもとに自動生成しています。工事番号 ${j.no} の見積・工程・出来高と同一データで、法定福利費を内訳に明示しています。<br>
+    これはデモ用の見本であり、発行者・口座・登録番号・許可番号はすべて架空です。
+  </div>`;
+}
+function showInvoice(j){
+  openModal(`請求書 ${j.inv.no}`,
+    `<div class="sheetwrap"><div id="sheet">${invoiceHTML(j)}</div></div>`,
+    `<span class="left" id="pdfnote">A4・1ページで出力されます</span>
+     <button class="btn" onclick="closeModal()">閉じる</button>
+     <button class="btn dark" id="printbtn">印刷</button>
+     <button class="btn primary" id="pdfbtn">PDFを保存</button>`, true);
+  $('printbtn').addEventListener('click',()=>window.print());
+  $('pdfbtn').addEventListener('click',()=>savePdf(j));
+}
+
+/* ---- PDF 生成・保存 ---- */
+let downloads=null;
+(async()=>{ try{ downloads=await window.claude?.use?.('downloads'); }catch(_){} })();
+async function savePdf(j){
+  const btn=$('pdfbtn'); if(!btn) return;
+  btn.disabled=true; btn.textContent='生成中…';
+  try{
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    const node=$('sheet');
+    const canvas=await html2canvas(node,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false});
+    const img=canvas.toDataURL('image/jpeg',0.92);
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+    const w=210, h=canvas.height*w/canvas.width;
+    pdf.addImage(img,'JPEG',0,0,w,Math.min(h,297));
+    const blob=pdf.output('blob');
+    const filename=`請求書_${j.inv.no}_${j.client.replace(/[\\/:*?"<>|\s]/g,'')}.pdf`;
+    if(downloads){
+      await downloads.save({filename, data:blob});
+      toast(`${filename} を保存しました。`);
+    }else{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url),4000);
+      toast('PDFを生成しました。保存できない場合は「印刷」からPDF出力してください。');
+    }
+  }catch(err){
+    const code=err&&err.code;
+    if(code==='declined') toast('保存をキャンセルしました。');
+    else { toast('PDF保存が使えないようです。「印刷」からPDF出力してください。'); console.error(err); }
+  }finally{ btn.disabled=false; btn.textContent='PDFを保存'; }
+}
+
+/* =========================================================
+   07 マップ
+   ========================================================= */
+const scope=[
+  {t:'見積・積算（区分別単価表）',phase:'PHASE 1',eff:'月 14時間',
+   now:'過去のExcelを探して上書き。材料はメーカー見積から都度転記し、施工費は職長の感覚。個人宅と法人で同じ表を使い回している。',
+   aft:'テンプレ ×（区分・数量）で自動積算。単価表は区分別に1か所。承認前に粗利率が見え、値引きの限界ラインが現場でも分かる。'},
+  {t:'材料発注・在庫',phase:'PHASE 1',eff:'月 8時間＋買い直し削減',
+   now:'トラック在庫が見えず、現場で足りずにその都度買い足し。余った材料は行方不明。',
+   aft:'見積明細がそのまま必要材料リストになる。発注済・現場搬入済をステータスで持ち、残材を次の現場へ回せる。'},
+  {t:'工事台帳・受注管理',phase:'PHASE 1',eff:'月 8時間',
+   now:'見積Excel、工程ホワイトボード、請求ソフトに同じ内容を3回入力。',
+   aft:'承認した見積が台帳になる。工事番号ひとつで見積・工程・写真・請求がつながる。'},
+  {t:'請求・入金消込',phase:'PHASE 1',eff:'月 10時間＋回収改善',
+   now:'完了を覚えている人が月末に思い出して起票。個人宅の即金と法人の60日サイトが混ざって管理されている。',
+   aft:'完了フラグ＋区分別サイトで自動起票。未請求・入金遅れは経過日数でアラート。法定福利費も内訳に自動明示。'},
+  {t:'申請・届出の期限管理',phase:'PHASE 2',eff:'失注・工程遅延の防止',
+   now:'電力申請・消防届出・保安協会立会の期限は担当者の記憶とカレンダー。出し忘れて受電日が飛んだことがある。',
+   aft:'テンプレに必要な申請と前倒し日数を持たせ、着工日から逆算して自動でアラート。日程を動かすと期限も一緒に動く。'},
+  {t:'人員・資格配置',phase:'PHASE 2',eff:'手待ち・資格事故の削減',
+   now:'第一種・消防設備士の有資格者に案件が集中。前日の夜に職長が電話で調整し、資格の確認は口頭。',
+   aft:'週ボードで班・車両・機材を一元表示。二重割当と資格不足を同時に自動検出し、該当資格を持つ班を提示する。'},
+  {t:'工程管理',phase:'PHASE 2',eff:'月 10時間',
+   now:'ホワイトボードと頭の中。変更は電話で伝わり、伝わらない人が出る。',
+   aft:'工程テンプレから標準日数を自動生成。変更すると後工程・申請期限・手配日が連動して動く。'},
+  {t:'現場報告・竣工写真',phase:'PHASE 3',eff:'月 14時間',
+   now:'帰社後に手書き日報。施工前後の写真はスマホに溜まり、整理は夜と休日。',
+   aft:'スマホで進捗％・人数・写真を送信。工事番号ごとに自動仕分けし、日報と竣工写真台帳を自動生成。'},
+  {t:'点検・更新提案（ストック化）',phase:'PHASE 3',eff:'リピート受注の底上げ',
+   now:'年次点検の案内は思い出したときだけ。過去に入れたLED・分電盤・キュービクルの更新時期は誰も追っていない。',
+   aft:'工事台帳から更新サイクルを自動計算し、点検・更新提案のリストを毎月生成。空いた班をそこへ回す。'},
+  {t:'原価管理',phase:'PHASE 3',eff:'粗利の可視化',
+   now:'工事ごとの実際原価は決算まで分からない。赤字現場に気づくのが数か月後。',
+   aft:'材料・外注・労務を工事番号に紐付け、単価表の原価と対比した消化率をリアルタイム表示。'},
+];
+$('mapcards').innerHTML=scope.map(s=>`<div class="mapcard"><h3>${s.t}</h3>
+  <div class="body"><span class="phase">${s.phase}</span>
+    <dl class="ba"><dt>現状</dt><dd class="now">${s.now}</dd><dt>仕組み化後</dt><dd class="aft">${s.aft}</dd></dl></div>
+  <footer><span>削減・改善見込み</span><b>${s.eff}</b></footer></div>`).join('');
+
+/* ---- 起動 ---- */
+function renderAll(){ renderDash(); renderGantt(); renderMonth(); renderCrew(); renderBill(); renderTanka(); updateCount(); }
+syncQtyLabel(); calc(); renderAll();
+window.closeModal=closeModal;
+</script>
+</body>
+</html>
